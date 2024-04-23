@@ -1,0 +1,11 @@
+{
+    "configurations": [
+        {
+            "name": "C#: RssReader.MVVM",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/src/RssReader.MVVM/RssReader.MVVM.csproj",
+            "launchConfigurationId": "TargetFramework=;RssReader.MVVM"
+        }
+    ]
+}

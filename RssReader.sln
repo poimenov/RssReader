@@ -1,0 +1,33 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.5.002.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RssReader.MVVM", "src\RssReader.MVVM\RssReader.MVVM.csproj", "{571251D2-D7BA-4A41-9FC0-93FA639D3A7D}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{571251D2-D7BA-4A41-9FC0-93FA639D3A7D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{571251D2-D7BA-4A41-9FC0-93FA639D3A7D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{571251D2-D7BA-4A41-9FC0-93FA639D3A7D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{571251D2-D7BA-4A41-9FC0-93FA639D3A7D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D8432183-C52E-4121-B7F9-D098FD1F5783}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D8432183-C52E-4121-B7F9-D098FD1F5783}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D8432183-C52E-4121-B7F9-D098FD1F5783}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D8432183-C52E-4121-B7F9-D098FD1F5783}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FD7FBFCB-6A46-4F00-9BFE-514E7D5BF664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FD7FBFCB-6A46-4F00-9BFE-514E7D5BF664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FD7FBFCB-6A46-4F00-9BFE-514E7D5BF664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FD7FBFCB-6A46-4F00-9BFE-514E7D5BF664}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {661ED0EF-342A-4F56-B7AD-BC863F655898}
+	EndGlobalSection
+EndGlobal

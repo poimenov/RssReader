@@ -1,0 +1,15 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:RssReader.MVVM.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+        WindowStartupLocation="CenterScreen" WindowState="Normal"
+        x:Class="RssReader.MVVM.Views.MainWindow"
+        xmlns:views="clr-namespace:RssReader.MVVM.Views"
+        Icon="/Assets/avalonia-logo.ico"
+        Title="Rss Reader">
+    
+    <views:MainView />
+    
+</Window>
