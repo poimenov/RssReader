@@ -62,7 +62,7 @@ public class ChannelsGroups : IChannelsGroups
     {
         using (var db = new Database())
         {
-            return db.ChannelsGroups.ToList();
+            return db.ChannelsGroups.OrderBy(x => x.Rank).ToList();
         }
     }
 

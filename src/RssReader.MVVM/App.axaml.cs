@@ -62,6 +62,7 @@ public partial class App : Application
                 .AddSingleton<MainWindow>(service => new MainWindow
                 {
                     DataContext = new MainViewModel(
+                        GetRequiredService<IChannelService>(),
                          GetRequiredService<IExportImport>(),
                          GetRequiredService<IChannelReader>()
                      )
@@ -73,7 +74,8 @@ public partial class App : Application
                 .AddTransient<IChannelItems, ChannelItems>()
                 //services
                 .AddTransient<IExportImport, ExportImport>()
-                .AddTransient<IChannelReader, ChannelReader>();
+                .AddTransient<IChannelReader, ChannelReader>()
+                .AddTransient<IChannelService, ChannelService>();
 
 
             _host = builder.Build();

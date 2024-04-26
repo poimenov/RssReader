@@ -74,6 +74,14 @@ public class Channels : IChannels
         }
     }
 
+    public int GetUnreadCount(int id)
+    {
+        using (var db = new Database())
+        {
+            return db.ChannelItems.Count(x => x.IsRead == false && x.ChannelId == id);
+        }
+    }
+
     public void Update(Channel channel)
     {
         using (var db = new Database())

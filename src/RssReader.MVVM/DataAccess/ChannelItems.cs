@@ -88,7 +88,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ItemCategories.Select(c => c.CategoryId).Contains(categoryId));
+            return db.ChannelItems.Where(x => x.ItemCategories.Select(c => c.CategoryId).Contains(categoryId)).ToList();
         }
     }
 
@@ -96,7 +96,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ChannelId == channelId);
+            return db.ChannelItems.Where(x => x.ChannelId == channelId).ToList();
         }
     }
 
@@ -104,7 +104,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsDeleted == isDeleted);
+            return db.ChannelItems.Where(x => x.IsDeleted == isDeleted).ToList();
         }
     }
 
@@ -112,7 +112,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsFavorite == isFavorite);
+            return db.ChannelItems.Where(x => x.IsFavorite == isFavorite).ToList();
         }
     }
 
@@ -120,7 +120,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId);
+            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId).ToList();
         }
     }
 
@@ -128,7 +128,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsRead == isRead);
+            return db.ChannelItems.Where(x => x.IsRead == isRead).ToList();
         }
     }
 
@@ -136,7 +136,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsReadLater == isReadLater);
+            return db.ChannelItems.Where(x => x.IsReadLater == isReadLater).ToList();
         }
     }
 

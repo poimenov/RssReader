@@ -12,4 +12,5 @@ public interface IChannels
     bool Exists(string url);
     IEnumerable<Channel> GetAll();
     IEnumerable<Channel> GetByGroupId(int groupId);
+    int GetUnreadCount(int id);
 }
