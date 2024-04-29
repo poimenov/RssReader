@@ -25,7 +25,25 @@
         </Style>  
         <Style Selector="Button.main:pointerover PathIcon">
             <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
-        </Style>  
+        </Style> 
+        <Style Selector="Button.link">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}">
+                        <ContentPresenter.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="FontSize" Value="{TemplateBinding FontSize}"/>
+                                <Setter Property="TextDecorations" Value="Underline"/>
+                            </Style>
+                        </ContentPresenter.Styles>
+                    </ContentPresenter>
+                </ControlTemplate>
+            </Setter>
+        </Style>               
     </UserControl.Styles>           
     
     <DockPanel>  
@@ -51,6 +69,7 @@
             </Button>                 
         </Grid>  
         
+        
         <SplitView IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay}"
                    CompactPaneLength="0"
                    DisplayMode="CompactInline"
@@ -60,24 +79,45 @@
             </SplitView.Pane>
             <SplitView.Content>
                 
-                <Grid ColumnDefinitions="400,*" RowDefinitions="*">
+                <Grid ColumnDefinitions="400,Auto,*" RowDefinitions="*">                  
+                    
+                    
                     <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" HorizontalAlignment="Stretch">                        
                         <Button HorizontalAlignment="Left" Grid.Row="0"
                                 Width="32" Height="32" Margin="7 10" Command="{Binding TriggerPaneCommand}">
                             <PathIcon Height="11" Data="{StaticResource LineHorizontal3Regular}" />
-                        </Button>  
-                        <TextBlock Grid.Row="1" Margin="0 5" FontSize="18" FontWeight="Bold" 
-                                   Text="{Binding SelectedChannelItemsViewModel.ChannelModel.Title}"></TextBlock>                        
-                        <vw:ChannelItemsView Grid.Row="2" DataContext="{Binding SelectedChannelItemsViewModel}" />
+                        </Button>                          
+                        
+                        <Button Classes="link" Grid.Row="1" Margin="0 5" FontSize="18" FontWeight="Bold" 
+                                Content="{Binding SelectedChannelItemsViewModel.ChannelModel.Title}" Command="{Binding OpenChannelLinkCommand}">
+                            <ToolTip.Tip>
+                                <TextBlock Text="{Binding SelectedChannelItemsViewModel.ChannelModel.Link}" FontStyle="Italic" />
+                            </ToolTip.Tip>
+                        </Button>                                   
+                        
+                        <vw:ChannelItemsView Grid.Row="2" DataContext="{Binding SelectedChannelItemsViewModel}" />                     
+                        
                     </Grid>
                     
-                    <!-- <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />                                -->
+                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />  
                     
-                    <av:HtmlPanel Grid.Column="2" Text="{Binding HtmlContent}" />
+                    <Grid Grid.Column="2" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
+                        <StackPanel Margin="5" Grid.Row="0" Orientation="Vertical">
+                            <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" FontStyle="Italic" />
+                            <Button Classes="link" FontSize="20" FontWeight="Bold" Content="{Binding SelectedChannelItem.Title}" Command="{Binding OpenItemLinkCommand}">
+                                <ToolTip.Tip>
+                                    <TextBlock Text="{Binding SelectedChannelItem.Link}" FontStyle="Italic" />
+                                </ToolTip.Tip>
+                            </Button>
+                            <TextBlock Text="{Binding SelectedChannelItem.ChannelTitle}" FontStyle="Italic"  />                                                        
+                        </StackPanel>  
+                        <av:HtmlPanel  Grid.Row="1" Margin="5" Text="{Binding SelectedChannelItem.Content}" />
+                    </Grid>
                     
                 </Grid>
                 
             </SplitView.Content>
-        </SplitView>    
+        </SplitView>          
+        
     </DockPanel>
 </UserControl>             

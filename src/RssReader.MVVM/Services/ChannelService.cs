@@ -11,10 +11,12 @@ public class ChannelService : IChannelService
 {
     private readonly IChannelsGroups _channelsGroups;
     private readonly IChannels _channels;
-    public ChannelService(IChannelsGroups channelsGroups, IChannels channels)
+    private readonly IChannelItems _channelItems;
+    public ChannelService(IChannelsGroups channelsGroups, IChannels channels, IChannelItems channelItems)
     {
         _channelsGroups = channelsGroups;
         _channels = channels;
+        _channelItems = channelItems;
     }
     public void AddChannel(ChannelModel channel)
     {
@@ -24,6 +26,11 @@ public class ChannelService : IChannelService
     public void DeleteChannel(ChannelModel channel)
     {
         throw new System.NotImplementedException();
+    }
+
+    public ChannelItemModel GetChannelItem(long channelItemId)
+    {
+        return new ChannelItemModel(_channelItems.Get(channelItemId));
     }
 
     public IEnumerable<ChannelModel> GetChannels()

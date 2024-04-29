@@ -1,7 +1,10 @@
 using System;
+using System.Diagnostics;
 using System.Reactive.Linq;
+using System.Runtime.InteropServices;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess;
+using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
@@ -19,6 +22,8 @@ public class MainViewModel : ViewModelBase
         _channelReader = channelReader;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
+        OpenItemLinkCommand = CreateOpenItemLinkCommand();
+        OpenChannelLinkCommand = CreateOpenChannelLinkCommand();
         ChannelsTreeViewModel = new ChannelsTreeViewModel(_channelService);
         ChannelsTreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
             .Where(x => x != null)
@@ -33,17 +38,9 @@ public class MainViewModel : ViewModelBase
                 .Where(x => x != null)
                 .Subscribe(x =>
                 {
-                    if (!string.IsNullOrEmpty(x?.Content))
-                    {
-                        HtmlContent = x.Content;
-                    }
-                    else if (!string.IsNullOrEmpty(x?.Description))
-                    {
-                        HtmlContent = x.Description;
-                    }
+                    SelectedChannelItem = _channelService.GetChannelItem(x!.Id);
                 });
             });
-
 
         // _exportImport.Import("/home/poimenov/Desktop/feedly.opml");
         // _channelReader.ReadAllChannelsAsync();        
@@ -56,14 +53,16 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isPaneOpen, value);
     }
 
-    private string _htmlContent;
-    public string HtmlContent
+
+    private ChannelItemModel? _selectedChannelItem;
+    public ChannelItemModel? SelectedChannelItem
     {
-        get => _htmlContent;
-        set => this.RaiseAndSetIfChanged(ref _htmlContent, value);
+        get => _selectedChannelItem;
+        set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);
     }
 
     public ChannelsTreeViewModel ChannelsTreeViewModel { get; private set; }
+
     private ChannelItemsViewModel? _selectedChannelItemsViewModel;
     public ChannelItemsViewModel? SelectedChannelItemsViewModel
     {
@@ -71,6 +70,7 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItemsViewModel, value);
     }
 
+    #region Commands
     public IReactiveCommand TriggerPaneCommand { get; }
 
     private IReactiveCommand CreateTriggerPaneCommand()
@@ -81,5 +81,54 @@ public class MainViewModel : ViewModelBase
                 IsPaneOpen = !IsPaneOpen;
             }
         );
+    }
+
+    public IReactiveCommand OpenItemLinkCommand { get; }
+
+    private IReactiveCommand CreateOpenItemLinkCommand()
+    {
+        return ReactiveCommand.Create(
+        () =>
+            {
+                Open(SelectedChannelItemsViewModel?.SelectedChannelItem?.Link);
+            }
+        );
+    }
+
+    public IReactiveCommand OpenChannelLinkCommand { get; }
+    private IReactiveCommand CreateOpenChannelLinkCommand()
+    {
+        return ReactiveCommand.Create(
+        () =>
+            {
+                Open(SelectedChannelItemsViewModel?.ChannelModel?.Link);
+            }
+        );
+    }
+    #endregion
+
+    private static void Open(string? path)
+    {
+        if (string.IsNullOrEmpty(path))
+        {
+            return;
+        }
+
+        if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
+        {
+            path = $"\"{path}\"";
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+            {
+                Process.Start(new ProcessStartInfo { UseShellExecute = true, FileName = path });
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+            {
+                Process.Start("xdg-open", path);
+            }
+            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+            {
+                Process.Start("open", path);
+            }
+        }
     }
 }

@@ -3,12 +3,12 @@ using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.Models;
 using System.Reactive.Linq;
-using Avalonia.Controls;
 using RssReader.MVVM.DataAccess.Models;
-using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Controls.Templates;
-using RssReader.MVVM.Views;
 using System.Linq;
+using DynamicData.Binding;
+using System.Collections.ObjectModel;
+using DynamicData;
+using System.Collections.Generic;
 
 
 namespace RssReader.MVVM.ViewModels;
@@ -19,47 +19,27 @@ public class ChannelItemsViewModel : ViewModelBase
     public ChannelItemsViewModel(IChannelItems channelItems)
     {
         _channelItems = channelItems;
+        SourceItems = new ObservableCollectionExtended<ChannelItemModel>();
+        SourceItems.ToObservableChangeSet()
+            .ObserveOn(RxApp.MainThreadScheduler)
+            .Bind(out _items)
+            .Subscribe();
+
         this.WhenAnyValue(x => x.ChannelModel)
             .WhereNotNull()
             .Subscribe(channelModel =>
             {
-                FlatTreeDataGridSource<ChannelItem> source;
+                IEnumerable<ChannelItem> items;
                 if (channelModel.IsChannelsGroup)
                 {
-                    source = new FlatTreeDataGridSource<ChannelItem>(_channelItems.GetByGroupId(channelModel.Id))
-                    {
-                        Columns =
-                        {
-                            new TemplateColumn<ChannelItem>(string.Empty,
-                                new FuncDataTemplate<ChannelItem>((a,e) => new ChannelItemView
-                                {
-                                    DataContext = new ChannelItemViewModel(a)
-                                }))
-                        }
-                    };
+                    items = _channelItems.GetByGroupId(channelModel.Id);
                 }
                 else
                 {
-                    source = new FlatTreeDataGridSource<ChannelItem>(_channelItems.GetByChannelId(channelModel.Id))
-                    {
-                        Columns =
-                        {
-                            new TemplateColumn<ChannelItem>(string.Empty,
-                                new FuncDataTemplate<ChannelItem>((a,e) => new ChannelItemView
-                                {
-                                    DataContext = new ChannelItemViewModel(a)
-                                }))
-                        }
-                    };
+                    items = _channelItems.GetByChannelId(channelModel.Id);
                 }
 
-                source.RowSelection!.SelectionChanged += (sender, args) =>
-                {
-                    SelectedChannelItem = args.SelectedItems.FirstOrDefault();
-                };
-
-                Source = source;
-
+                SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
             });
     }
 
@@ -70,15 +50,14 @@ public class ChannelItemsViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _channelModel, value);
     }
 
-    private ITreeDataGridSource<ChannelItem>? _source;
-    public ITreeDataGridSource<ChannelItem>? Source
-    {
-        get => _source;
-        set => this.RaiseAndSetIfChanged(ref _source, value);
-    }
+    #region Items
+    public ObservableCollectionExtended<ChannelItemModel> SourceItems;
+    private readonly ReadOnlyObservableCollection<ChannelItemModel> _items;
+    public ReadOnlyObservableCollection<ChannelItemModel> Items => _items;
+    #endregion
 
-    private ChannelItem? _selectedChannelItem;
-    public ChannelItem? SelectedChannelItem
+    private ChannelItemModel? _selectedChannelItem;
+    public ChannelItemModel? SelectedChannelItem
     {
         get => _selectedChannelItem;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);

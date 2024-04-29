@@ -4,10 +4,31 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:vm="using:RssReader.MVVM.ViewModels"
+             xmlns:m="using:RssReader.MVVM.Models"   
              mc:Ignorable="d"
-             d:DesignWidth="300" d:DesignHeight="400"
              x:DataType="vm:ChannelItemsViewModel" x:CompileBindings="True">
     
-    <TreeDataGrid ShowColumnHeaders="False" Source="{Binding Source}" />     
+    <ListBox ItemsSource="{Binding Items}" Background="Transparent"
+             SelectedItem="{Binding SelectedChannelItem, Mode=TwoWay}"> 
+        
+        <ListBox.Styles>
+            <Style Selector="ListBoxItem">
+                <Setter Property="Padding" Value="2"/>
+            </Style>
+        </ListBox.Styles>                                    
+        
+        <ListBox.ItemTemplate>
+            <DataTemplate DataType="m:ChannelItemModel">                            
+                <Border BorderBrush="{DynamicResource SystemBaseLowColor}"
+                        BorderThickness="1" CornerRadius="3"> 
+                    <StackPanel Margin="5" HorizontalAlignment="Stretch">
+                        <TextBlock Text="{Binding PublishingDate}" FontStyle="Italic" />
+                        <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" HorizontalAlignment="Stretch" />
+                        <TextBlock Text="{Binding ShortDescription}" TextWrapping="Wrap" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </Border>                            
+            </DataTemplate>
+        </ListBox.ItemTemplate>
+    </ListBox>    
     
 </UserControl>             

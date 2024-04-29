@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 
@@ -80,7 +81,10 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.FirstOrDefault(x => x.Id == id);
+            return db.ChannelItems.Include(x => x.Channel)
+                .Include(x => x.ItemCategories)
+                .ThenInclude(x => x.Category)
+                .FirstOrDefault(x => x.Id == id);
         }
     }
 
