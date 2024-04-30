@@ -24,7 +24,7 @@ public class MainViewModel : ViewModelBase
         TriggerPaneCommand = CreateTriggerPaneCommand();
         OpenItemLinkCommand = CreateOpenItemLinkCommand();
         OpenChannelLinkCommand = CreateOpenChannelLinkCommand();
-        ChannelsTreeViewModel = new ChannelsTreeViewModel(_channelService);
+        ChannelsTreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
         ChannelsTreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
             .Where(x => x != null)
             .Subscribe(x =>
@@ -42,7 +42,7 @@ public class MainViewModel : ViewModelBase
                 });
             });
 
-        // _exportImport.Import("/home/poimenov/Desktop/feedly.opml");
+        //_exportImport.Import("/home/poimenov/Desktop/feedly.opml");
         // _channelReader.ReadAllChannelsAsync();        
     }
 

@@ -19,7 +19,7 @@ public class ChannelItemModel
 
         Id = channelItem.Id;
         Title = channelItem.Title;
-        Description = channelItem.Description;
+        Description = HttpUtility.HtmlDecode(channelItem.Description);
         Content = string.IsNullOrEmpty(channelItem.Content) ? channelItem.Description : channelItem.Content;
         Link = channelItem.Link;
         PublishingDate = GetPublishingDate(channelItem.PublishingDate);
@@ -64,7 +64,7 @@ public class ChannelItemModel
 
         if (dateTime.Value.Date == DateTime.Today)
         {
-            return dateTime.Value.ToShortTimeString();
+            return $"Today at {dateTime.Value.ToShortTimeString()}";
         }
 
         if (dateTime.Value.Date == DateTime.Today.AddDays(-1))
@@ -72,16 +72,6 @@ public class ChannelItemModel
             return "Yesterday";
         }
 
-        if (dateTime.Value.Date < DateTime.Today.AddDays(-1) && dateTime.Value.Date > DateTime.Today.AddDays(-7))
-        {
-            return dateTime.Value.ToString("ddd");
-        }
-
-        if (dateTime.Value.Date < DateTime.Today.AddDays(-7) && dateTime.Value.Date > DateTime.Today.AddDays(-30))
-        {
-            return dateTime.Value.ToString("MMM dd");
-        }
-
-        return dateTime.Value.ToString("yyyy-MM-dd");
+        return dateTime.Value.ToLongDateString();
     }
 }

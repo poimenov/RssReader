@@ -1,7 +1,8 @@
-using System.Collections;
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using DynamicData.Binding;
 using ReactiveUI;
 
 namespace RssReader.MVVM.Models;
@@ -11,9 +12,14 @@ public class ChannelModel : ReactiveObject
     public ChannelModel(int id, string title, IEnumerable<ChannelModel> children)
     {
         Id = id;
-        Title = title;
+        Title = title ?? string.Empty;
         _children = new ObservableCollection<ChannelModel>(children);
         IsChannelsGroup = true;
+        // this.WhenAnyValue(x => x.Children)
+        //     .Subscribe(x =>
+        //      {
+        //          this.RaisePropertyChanged(nameof(UnreadItemsCount));
+        //      });
     }
     public ChannelModel(int id, string title, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank)
     {
@@ -30,13 +36,44 @@ public class ChannelModel : ReactiveObject
     private ObservableCollection<ChannelModel>? _children;
     public ObservableCollection<ChannelModel>? Children { get => _children; }
     public int Id { get; set; }
-    public string Title { get; set; } = string.Empty;
+    private string _title = string.Empty;
+    public string Title
+    {
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
     public bool IsChannelsGroup { get; set; }
-    public string Url { get; set; } = string.Empty;
-    public string? Link { get; set; } = null;
-    public string? ImageUrl { get; set; } = null;
-    public string? Description { get; set; } = null;
-    public int Rank { get; set; }
+    private string _url = string.Empty;
+    public string Url
+    {
+        get => _url;
+        set => this.RaiseAndSetIfChanged(ref _url, value);
+    }
+    private string? _link = null;
+    public string? Link
+    {
+        get => _link;
+        set => this.RaiseAndSetIfChanged(ref _link, value);
+    }
+    private string? _imageUrl = null;
+    public string? ImageUrl
+    {
+        get => _imageUrl;
+        set => this.RaiseAndSetIfChanged(ref _imageUrl, value);
+    }
+
+    private string? _description = null;
+    public string? Description
+    {
+        get => _description;
+        set => this.RaiseAndSetIfChanged(ref _description, value);
+    }
+    private int _rank;
+    public int Rank
+    {
+        get => _rank;
+        set => this.RaiseAndSetIfChanged(ref _rank, value);
+    }
     private int _unreadItemsCount;
     public int UnreadItemsCount
     {
@@ -44,5 +81,6 @@ public class ChannelModel : ReactiveObject
         {
             return IsChannelsGroup ? Children?.Sum(c => c.UnreadItemsCount) ?? 0 : _unreadItemsCount;
         }
+        set => this.RaiseAndSetIfChanged(ref _unreadItemsCount, value);
     }
 }

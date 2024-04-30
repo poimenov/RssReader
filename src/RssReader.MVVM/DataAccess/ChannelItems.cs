@@ -92,7 +92,9 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ItemCategories.Select(c => c.CategoryId).Contains(categoryId)).ToList();
+            return db.ChannelItems.Where(x => x.ItemCategories.Select(c => c.CategoryId).Contains(categoryId))
+                    .OrderByDescending(x => x.Id)
+                    .ToList();
         }
     }
 
@@ -100,7 +102,9 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ChannelId == channelId).ToList();
+            return db.ChannelItems.Where(x => x.ChannelId == channelId)
+                    .OrderByDescending(x => x.PublishingDate)
+                    .ToList();
         }
     }
 
@@ -116,7 +120,9 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsFavorite == isFavorite).ToList();
+            return db.ChannelItems.Where(x => x.IsFavorite == isFavorite)
+                    .OrderByDescending(x => x.PublishingDate)
+                    .ToList();
         }
     }
 
@@ -124,7 +130,9 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId).ToList();
+            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId)
+                    .OrderByDescending(x => x.PublishingDate)
+                    .ToList();
         }
     }
 
@@ -132,7 +140,9 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsRead == isRead).ToList();
+            return db.ChannelItems.Where(x => x.IsRead == isRead)
+                    .OrderByDescending(x => x.PublishingDate)
+                    .ToList();
         }
     }
 
@@ -140,7 +150,9 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsReadLater == isReadLater).ToList();
+            return db.ChannelItems.Where(x => x.IsReadLater == isReadLater)
+                    .OrderByDescending(x => x.PublishingDate)
+                    .ToList();
         }
     }
 
