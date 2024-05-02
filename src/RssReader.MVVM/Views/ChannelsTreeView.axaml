@@ -3,9 +3,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:m="using:RssReader.MVVM.Models"
              xmlns:vm="using:RssReader.MVVM.ViewModels"
              mc:Ignorable="d"
              d:DesignWidth="300" d:DesignHeight="400"
              x:DataType="vm:ChannelsTreeViewModel" x:CompileBindings="True">
-    <TreeDataGrid ShowColumnHeaders="False" Source="{Binding Source}" />             
+    
+    <TreeDataGrid ShowColumnHeaders="False" Source="{Binding Source}">
+        <TreeDataGrid.Resources>
+            <DataTemplate x:Key="ChannelNameCell" DataType="m:ChannelModel">
+                <StackPanel Orientation="Horizontal">
+                    <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16">
+                        <Image.Source>
+                            <Binding Converter="{x:Static vm:ChannelsTreeViewModel.ChannelIconConverter}" />
+                        </Image.Source>
+                    </Image>
+                    <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                </StackPanel>
+            </DataTemplate>
+        </TreeDataGrid.Resources>
+        <TreeDataGrid.Styles>
+            <Style Selector="TreeDataGrid TreeDataGridRow:nth-child(2n)">
+                <Setter Property="Background"  Value="#20808080"/>
+            </Style>
+        </TreeDataGrid.Styles>        
+    </TreeDataGrid>  
+    
 </UserControl>             

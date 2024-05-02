@@ -1,9 +1,13 @@
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using CodeHollow.FeedReader;
+using HtmlAgilityPack;
 using log4net;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
@@ -25,7 +29,7 @@ public class ChannelReader : IChannelReader
         _log = log;
     }
 
-    public async Task ReadChannelAsync(ChannelModel channelModel)
+    public async Task ReadChannelAsync(ChannelModel channelModel, CancellationToken cancellationToken)
     {
         if (channelModel == null || channelModel.Id <= 0 || string.IsNullOrEmpty(channelModel.Url))
         {
@@ -41,10 +45,17 @@ public class ChannelReader : IChannelReader
 
         try
         {
+            var siteLink = string.IsNullOrEmpty(channelModel.Link) ? new Uri(channelModel.Url).GetLeftPart(UriPartial.Authority) : channelModel.Link;
+            if (!string.IsNullOrEmpty(siteLink))
+            {
+                Debug.WriteLine($"Start download icon url = {siteLink}");
+                await DownloadIconAsync(new Uri(siteLink), cancellationToken);
+            }
+
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Debug.WriteLine($"Start read url = {channel.Url}");
 
-            var feed = await FeedReader.ReadAsync(channel.Url);
+            var feed = await FeedReader.ReadAsync(channel.Url, cancellationToken);
 
             if (feed != null)
             {
@@ -178,6 +189,66 @@ public class ChannelReader : IChannelReader
             }
 
             await Task.Delay(TimeSpan.FromMinutes(1));
+        }
+    }
+
+    public async Task DownloadIconAsync(Uri uri, CancellationToken cancellationToken)
+    {
+        if (uri != null)
+        {
+            try
+            {
+                var directioryPath = Path.Combine(AppSettings.AppDataPath, "Icons");
+                if (!Directory.Exists(directioryPath))
+                {
+                    Directory.CreateDirectory(directioryPath);
+                }
+
+                if (Directory.GetFiles(directioryPath, $"{uri.Host}.*").Length == 0)
+                {
+                    var fileName = $"{uri.Host}.ico";
+                    var uriToDownload = new Uri(uri, "/favicon.ico");
+                    var webGet = new HtmlWeb();
+                    var document = await webGet.LoadFromWebAsync(uri.ToString(), cancellationToken);
+                    var iconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"icon\"]");
+                    if (iconLink != null)
+                    {
+                        uriToDownload = new Uri(uri, iconLink.Attributes["href"].Value);
+                        fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
+                    }
+                    else
+                    {
+                        var shortcutIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"shortcut icon\"]");
+                        if (shortcutIconLink != null)
+                        {
+                            uriToDownload = new Uri(uri, shortcutIconLink.Attributes["href"].Value);
+                            fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
+                        }
+                        else
+                        {
+                            var appleTouchIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"apple-touch-icon\"]");
+                            if (appleTouchIconLink != null)
+                            {
+                                uriToDownload = new Uri(uri, appleTouchIconLink.Attributes["href"].Value);
+                                fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
+                            }
+                        }
+                    }
+
+                    Debug.WriteLine($"Downloading icon for {uri} : {uriToDownload}");
+                    using (var client = new HttpClient())
+                    {
+                        var response = await client.GetAsync(uriToDownload, cancellationToken);
+                        var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+                        File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine(ex);
+                _log.Error(ex);
+            }
         }
     }
 }
