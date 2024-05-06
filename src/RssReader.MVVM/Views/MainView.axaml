@@ -15,17 +15,6 @@
     </Design.DataContext> 
     
     <UserControl.Styles>
-        <Style Selector="Button.main">
-            <Setter Property="Margin" Value="0" />
-            <Setter Property="Background" Value="#7F8b44ac" />
-            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
-        </Style>
-        <Style Selector="Button.main:pointerover">
-            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
-        </Style>  
-        <Style Selector="Button.main:pointerover PathIcon">
-            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
-        </Style> 
         <Style Selector="Button.link">
             <Setter Property="Padding" Value="0" />
             <Setter Property="Cursor" Value="Hand" />
@@ -46,36 +35,17 @@
         </Style>               
     </UserControl.Styles>           
     
-    <DockPanel>  
-        <Grid Height="45" DockPanel.Dock="Top" Background="#8B44AC"
-              ColumnDefinitions="Auto,Auto,*,Auto,Auto" RowDefinitions="*">
-            <Image Grid.Column="0" Margin="6,6,6,6" Height="32">
-                <Image.Source>
-                    <svg:SvgImage Source="/Assets/logo.svg" />
-                </Image.Source>
-            </Image>
-            <Label Content="RSS Reader" Grid.Column="1" FontSize="24" 
-                   Foreground="White" FontWeight="SemiBold" Margin="6,6,0,6"           
-                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
-            <Button Grid.Column="3" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <PathIcon Width="16" Height="16" 
-                          Margin="0,0,0,0"
-                          Data="{StaticResource GistIcon}"/>                 
-            </Button>
-            <Button Grid.Column="4" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
-                <PathIcon Width="16" Height="16" 
-                          Margin="0,0,0,0"
-                          Data="{StaticResource SettingsIcon}"/>                 
-            </Button>                 
-        </Grid>  
-        
-        
+    <DockPanel> 
+        <vw:HeaderView DockPanel.Dock="Top" DataContext="{Binding HeaderViewModel}" />        
         <SplitView IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay}"
                    CompactPaneLength="0"
                    DisplayMode="CompactInline"
                    OpenPaneLength="300">        
             <SplitView.Pane>
-                <vw:ChannelsTreeView DataContext="{Binding ChannelsTreeViewModel}" />
+                <Grid RowDefinitions="*,Auto">                    
+                    <vw:ChannelsTreeView  Grid.Row="0" DataContext="{Binding ChannelsTreeViewModel}" />                    
+                    <vw:TreeEditView Grid.Row="1" DataContext="{Binding TreeEditViewModel}" />
+                </Grid>
             </SplitView.Pane>
             <SplitView.Content>
                 
@@ -104,7 +74,8 @@
                     <Grid Grid.Column="2" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
                         <StackPanel Margin="5" Grid.Row="0" Orientation="Vertical">
                             <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" FontStyle="Italic" />
-                            <Button Classes="link" FontSize="20" FontWeight="Bold" Content="{Binding SelectedChannelItem.Title}" Command="{Binding OpenItemLinkCommand}">
+                            <Button Classes="link" FontSize="20" FontWeight="Bold" 
+                                    Content="{Binding SelectedChannelItem.Title}" Command="{Binding OpenItemLinkCommand}">
                                 <ToolTip.Tip>
                                     <TextBlock Text="{Binding SelectedChannelItem.Link}" FontStyle="Italic" />
                                 </ToolTip.Tip>

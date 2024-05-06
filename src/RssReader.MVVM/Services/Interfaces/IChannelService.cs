@@ -6,6 +6,7 @@ namespace RssReader.MVVM.Services.Interfaces;
 public interface IChannelService
 {
     IEnumerable<ChannelModel> GetChannels();
+    ChannelModel GetChannel(ChannelModelType channelModelType);
     ChannelItemModel GetChannelItem(long channelItemId);
     void AddChannel(ChannelModel channel);
     void UpdateChannel(ChannelModel channel);

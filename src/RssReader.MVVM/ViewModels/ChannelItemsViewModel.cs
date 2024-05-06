@@ -30,13 +30,27 @@ public class ChannelItemsViewModel : ViewModelBase
             .Subscribe(channelModel =>
             {
                 IEnumerable<ChannelItem> items;
-                if (channelModel.IsChannelsGroup)
+                switch (channelModel.ModelType)
                 {
-                    items = _channelItems.GetByGroupId(channelModel.Id);
-                }
-                else
-                {
-                    items = _channelItems.GetByChannelId(channelModel.Id);
+                    case ChannelModelType.All:
+                        items = _channelItems.GetByRead(false);
+                        break;
+                    case ChannelModelType.Starred:
+                        items = _channelItems.GetByFavorite(true);
+                        break;
+                    case ChannelModelType.ReadLater:
+                        items = _channelItems.GetByReadLater(true);
+                        break;
+                    default:
+                        if (channelModel.IsChannelsGroup)
+                        {
+                            items = _channelItems.GetByGroupId(channelModel.Id);
+                        }
+                        else
+                        {
+                            items = _channelItems.GetByChannelId(channelModel.Id);
+                        }
+                        break;
                 }
 
                 SourceItems.Load(items.Select(x => new ChannelItemModel(x)));

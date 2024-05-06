@@ -102,7 +102,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ChannelId == channelId)
+            return db.ChannelItems.Where(x => x.ChannelId == channelId && x.IsRead == false)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }
@@ -130,7 +130,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId)
+            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId && x.IsRead == false)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }

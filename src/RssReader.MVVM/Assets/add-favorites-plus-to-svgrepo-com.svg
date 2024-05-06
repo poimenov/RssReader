@@ -1,0 +1,14 @@
+<?xml version="1.0" ?><!-- Uploaded to: SVG Repo, www.svgrepo.com, Generator: SVG Repo Mixer Tools -->
+<svg width="800px" height="800px" viewBox="0 0 60 60" data-name="add to favorites" id="add_to_favorites" xmlns="http://www.w3.org/2000/svg"><defs><style>
+      .cls-1 {
+        fill: #699f4c;
+      }
+
+      .cls-1, .cls-2 {
+        fill-rule: evenodd;
+      }
+
+      .cls-2 {
+        fill: #c59494;
+      }
+    </style></defs><path class="cls-1" d="M817.875,126a12,12,0,1,1-12,12A12,12,0,0,1,817.875,126ZM812,140h4v4a2,2,0,0,0,4,0v-4h4a2,2,0,0,0,0-4h-4v-4a2,2,0,0,0-4,0v4h-4A2,2,0,0,0,812,140Z" id="add" transform="translate(-770 -90)"/><path class="cls-2" d="M825.88,121.835A17.975,17.975,0,0,0,803.4,148.5l-0.216.177a4.509,4.509,0,0,1-6.375,0S770,127.085,770,107a17,17,0,0,1,17-17c7.625,0,11.562,6.057,13,6.057S805.375,90,813,90a17,17,0,0,1,17,17C830,111.97,828.351,117.031,825.88,121.835Z" id="favorite" transform="translate(-770 -90)"/></svg>

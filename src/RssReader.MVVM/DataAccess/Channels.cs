@@ -66,6 +66,14 @@ public class Channels : IChannels
         }
     }
 
+    public int GetAllUnreadCount()
+    {
+        using (var db = new Database())
+        {
+            return db.ChannelItems.Count(x => x.IsRead == false);
+        }
+    }
+
     public IEnumerable<Channel> GetByGroupId(int groupId)
     {
         using (var db = new Database())
@@ -74,11 +82,27 @@ public class Channels : IChannels
         }
     }
 
-    public int GetUnreadCount(int id)
+    public int GetReadLaterCount()
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Count(x => x.IsRead == false && x.ChannelId == id);
+            return db.ChannelItems.Count(x => x.IsReadLater == true);
+        }
+    }
+
+    public int GetStarredCount()
+    {
+        using (var db = new Database())
+        {
+            return db.ChannelItems.Count(x => x.IsFavorite == true);
+        }
+    }
+
+    public int GetChannelUnreadCount(int channelId)
+    {
+        using (var db = new Database())
+        {
+            return db.ChannelItems.Count(x => x.IsRead == false && x.ChannelId == channelId);
         }
     }
 

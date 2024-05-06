@@ -1,0 +1,48 @@
+<UserControl x:Class="RssReader.MVVM.Views.HeaderView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Avalonia.Svg"
+             xmlns:vm="using:RssReader.MVVM.ViewModels"
+             mc:Ignorable="d"
+             d:DesignWidth="300" d:DesignHeight="400"
+             x:DataType="vm:HeaderViewModel" x:CompileBindings="True">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.main">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="Background" Value="#7F8b44ac" />
+            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
+        </Style>
+        <Style Selector="Button.main:pointerover">
+            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
+        </Style>  
+        <Style Selector="Button.main:pointerover PathIcon">
+            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
+        </Style>               
+    </UserControl.Styles>              
+    
+    <Grid Height="45" Background="#8B44AC"
+          ColumnDefinitions="Auto,Auto,*,Auto,Auto" RowDefinitions="*">
+        <Image Grid.Column="0" Margin="6,6,6,6" Height="32">
+            <Image.Source>
+                <svg:SvgImage Source="/Assets/logo.svg" />
+            </Image.Source>
+        </Image>
+        <Label Content="RSS Reader" Grid.Column="1" FontSize="24" 
+               Foreground="White" FontWeight="SemiBold" Margin="6,6,0,6"           
+               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+        <Button Grid.Column="3" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <PathIcon Width="16" Height="16" 
+                      Margin="0,0,0,0"
+                      Data="{StaticResource GistIcon}"/>                 
+        </Button>
+        <Button Grid.Column="4" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
+            <PathIcon Width="16" Height="16" 
+                      Margin="0,0,0,0"
+                      Data="{StaticResource SettingsIcon}"/>                 
+        </Button>                 
+    </Grid>              
+    
+</UserControl>             

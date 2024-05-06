@@ -93,7 +93,7 @@ public class ChannelReader : IChannelReader
                 channelModel.Link = channel.Link;
                 channelModel.ImageUrl = channel.ImageUrl;
                 channelModel.Url = channel.Url;
-                channelModel.UnreadItemsCount = _channels.GetUnreadCount(channel.Id);
+                channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
                 Debug.WriteLine($"End read url = {channel.Url}");
             }
         }

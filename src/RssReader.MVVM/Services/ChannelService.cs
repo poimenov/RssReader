@@ -27,6 +27,21 @@ public class ChannelService : IChannelService
         throw new System.NotImplementedException();
     }
 
+    public ChannelModel GetChannel(ChannelModelType channelModelType)
+    {
+        switch (channelModelType)
+        {
+            case ChannelModelType.All:
+                return new ChannelModel(ChannelModelType.All, "All", _channels.GetAllUnreadCount());
+            case ChannelModelType.Starred:
+                return new ChannelModel(ChannelModelType.Starred, "Starred", _channels.GetStarredCount());
+            case ChannelModelType.ReadLater:
+                return new ChannelModel(ChannelModelType.ReadLater, "Read Later", _channels.GetReadLaterCount());
+            default:
+                return new ChannelModel(ChannelModelType.All, "All", _channels.GetAllUnreadCount());
+        }
+    }
+
     public ChannelItemModel GetChannelItem(long channelItemId)
     {
         return new ChannelItemModel(_channelItems.Get(channelItemId));
@@ -36,7 +51,7 @@ public class ChannelService : IChannelService
     {
         var retVal = _channelsGroups.GetAll().Select(group =>
             new ChannelModel(group.Id, group.Name, _channels.GetByGroupId(group.Id).Select(x =>
-            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetUnreadCount(x.Id), x.Rank)))).ToList();
+            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
 
         return retVal;
     }

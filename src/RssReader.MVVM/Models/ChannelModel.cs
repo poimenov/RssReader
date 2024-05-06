@@ -7,14 +7,36 @@ using ReactiveUI;
 
 namespace RssReader.MVVM.Models;
 
+public enum ChannelModelType
+{
+    Default = 0,
+    All = -1,
+    Starred = -2,
+    ReadLater = -3
+}
+
 public class ChannelModel : ReactiveObject
 {
-    public ChannelModel(int id, string title, IEnumerable<ChannelModel> children)
+    public ChannelModel(ChannelModelType type, string title, int unreadItemsCount)
+    {
+        Id = (int)type;
+        Title = title;
+        IsChannelsGroup = false;
+        ModelType = type;
+        _unreadItemsCount = unreadItemsCount;
+    }
+
+    public ChannelModel(int id, string title, IEnumerable<ChannelModel>? children)
     {
         Id = id;
         Title = title ?? string.Empty;
-        _children = new ObservableCollection<ChannelModel>(children);
         IsChannelsGroup = true;
+        ModelType = ChannelModelType.Default;
+        if (children != null)
+        {
+            _children = new ObservableCollection<ChannelModel>(children);
+        }
+
         // this.WhenAnyValue(x => x.Children)
         //     .Subscribe(x =>
         //      {
@@ -32,7 +54,10 @@ public class ChannelModel : ReactiveObject
         Rank = rank;
         _unreadItemsCount = unreadItemsCount;
         IsChannelsGroup = false;
+        ModelType = ChannelModelType.Default;
     }
+    public ChannelModelType ModelType { get; private set; }
+
     private ObservableCollection<ChannelModel>? _children;
     public ObservableCollection<ChannelModel>? Children { get => _children; }
     public int Id { get; set; }

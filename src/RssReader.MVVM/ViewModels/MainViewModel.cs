@@ -25,6 +25,8 @@ public class MainViewModel : ViewModelBase
         OpenItemLinkCommand = CreateOpenItemLinkCommand();
         OpenChannelLinkCommand = CreateOpenChannelLinkCommand();
         ChannelsTreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
+        TreeEditViewModel = new TreeEditViewModel();
+        HeaderViewModel = new HeaderViewModel();
         ChannelsTreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
             .Where(x => x != null)
             .Subscribe(x =>
@@ -41,9 +43,6 @@ public class MainViewModel : ViewModelBase
                     SelectedChannelItem = _channelService.GetChannelItem(x!.Id);
                 });
             });
-
-        //_exportImport.Import("/home/poimenov/Desktop/feedly.opml");
-        // _channelReader.ReadAllChannelsAsync();        
     }
 
     private bool _isPaneOpen;
@@ -68,6 +67,20 @@ public class MainViewModel : ViewModelBase
     {
         get => _selectedChannelItemsViewModel;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItemsViewModel, value);
+    }
+
+    private TreeEditViewModel? _treeEditViewModel;
+    public TreeEditViewModel? TreeEditViewModel
+    {
+        get => _treeEditViewModel;
+        set => this.RaiseAndSetIfChanged(ref _treeEditViewModel, value);
+    }
+
+    private HeaderViewModel? _headerViewModel;
+    public HeaderViewModel? HeaderViewModel
+    {
+        get => _headerViewModel;
+        set => this.RaiseAndSetIfChanged(ref _headerViewModel, value);
     }
 
     #region Commands
