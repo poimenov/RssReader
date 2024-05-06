@@ -2,92 +2,42 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:av="clr-namespace:TheArtOfDev.HtmlRenderer.Avalonia;assembly=Avalonia.HtmlRenderer"
-             xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Avalonia.Svg"
              xmlns:vm="clr-namespace:RssReader.MVVM.ViewModels"
              xmlns:vw="clr-namespace:RssReader.MVVM.Views"
              mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="450"
              x:Class="RssReader.MVVM.Views.MainView"
              x:CompileBindings="True" x:DataType="vm:MainViewModel">
     
-    <Design.DataContext>
-        <vm:MainViewModel />
-    </Design.DataContext> 
-    
-    <UserControl.Styles>
-        <Style Selector="Button.link">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Cursor" Value="Hand" />
-            <Setter Property="BorderThickness" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Template">
-                <ControlTemplate>
-                    <ContentPresenter Content="{TemplateBinding Content}">
-                        <ContentPresenter.Styles>
-                            <Style Selector="TextBlock">
-                                <Setter Property="FontSize" Value="{TemplateBinding FontSize}"/>
-                                <Setter Property="TextDecorations" Value="Underline"/>
-                            </Style>
-                        </ContentPresenter.Styles>
-                    </ContentPresenter>
-                </ControlTemplate>
-            </Setter>
-        </Style>               
-    </UserControl.Styles>           
-    
     <DockPanel> 
-        <vw:HeaderView DockPanel.Dock="Top" DataContext="{Binding HeaderViewModel}" />        
+        
+        <vw:HeaderView DockPanel.Dock="Top" DataContext="{Binding HeaderViewModel}" />  
+        
         <SplitView IsPaneOpen="{Binding IsPaneOpen, Mode=TwoWay}"
                    CompactPaneLength="0"
                    DisplayMode="CompactInline"
-                   OpenPaneLength="300">        
+                   OpenPaneLength="300">  
+            
             <SplitView.Pane>
                 <Grid RowDefinitions="*,Auto">                    
-                    <vw:ChannelsTreeView  Grid.Row="0" DataContext="{Binding ChannelsTreeViewModel}" />                    
+                    <vw:ChannelsTreeView  Grid.Row="0" DataContext="{Binding TreeViewModel}" />                    
                     <vw:TreeEditView Grid.Row="1" DataContext="{Binding TreeEditViewModel}" />
                 </Grid>
             </SplitView.Pane>
+            
             <SplitView.Content>
                 
-                <Grid ColumnDefinitions="400,Auto,*" RowDefinitions="*">                  
+                <Grid ColumnDefinitions="400,Auto,*" RowDefinitions="*">     
                     
-                    
-                    <Grid Grid.Column="0" RowDefinitions="Auto,Auto,*" HorizontalAlignment="Stretch">                        
-                        <Button HorizontalAlignment="Left" Grid.Row="0"
-                                Width="32" Height="32" Margin="7 10" Command="{Binding TriggerPaneCommand}">
-                            <PathIcon Height="11" Data="{StaticResource LineHorizontal3Regular}" />
-                        </Button>                          
-                        
-                        <Button Classes="link" Grid.Row="1" Margin="0 5" FontSize="18" FontWeight="Bold" 
-                                Content="{Binding SelectedChannelItemsViewModel.ChannelModel.Title}" Command="{Binding OpenChannelLinkCommand}">
-                            <ToolTip.Tip>
-                                <TextBlock Text="{Binding SelectedChannelItemsViewModel.ChannelModel.Link}" FontStyle="Italic" />
-                            </ToolTip.Tip>
-                        </Button>                                   
-                        
-                        <vw:ChannelItemsView Grid.Row="2" DataContext="{Binding SelectedChannelItemsViewModel}" />                     
-                        
-                    </Grid>
+                    <vw:ChannelItemsView  Grid.Column="0" DataContext="{Binding SelectedItemsViewModel}" /> 
                     
                     <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />  
                     
-                    <Grid Grid.Column="2" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
-                        <StackPanel Margin="5" Grid.Row="0" Orientation="Vertical">
-                            <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" FontStyle="Italic" />
-                            <Button Classes="link" FontSize="20" FontWeight="Bold" 
-                                    Content="{Binding SelectedChannelItem.Title}" Command="{Binding OpenItemLinkCommand}">
-                                <ToolTip.Tip>
-                                    <TextBlock Text="{Binding SelectedChannelItem.Link}" FontStyle="Italic" />
-                                </ToolTip.Tip>
-                            </Button>
-                            <TextBlock Text="{Binding SelectedChannelItem.ChannelTitle}" FontStyle="Italic"  />                                                        
-                        </StackPanel>  
-                        <av:HtmlPanel  Grid.Row="1" Margin="5" Text="{Binding SelectedChannelItem.Content}" />
-                    </Grid>
+                    <vw:ContentView  Grid.Column="2" DataContext="{Binding ContentViewModel}" />                    
                     
                 </Grid>
                 
             </SplitView.Content>
+            
         </SplitView>          
         
     </DockPanel>

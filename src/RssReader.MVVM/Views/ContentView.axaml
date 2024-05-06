@@ -1,0 +1,55 @@
+<UserControl x:Class="RssReader.MVVM.Views.ContentView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:av="clr-namespace:TheArtOfDev.HtmlRenderer.Avalonia;assembly=Avalonia.HtmlRenderer"
+             xmlns:vm="using:RssReader.MVVM.ViewModels"
+             mc:Ignorable="d"
+             x:DataType="vm:ContentViewModel" x:CompileBindings="True">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.link">
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Template">
+                <ControlTemplate>
+                    <ContentPresenter Content="{TemplateBinding Content}">
+                        <ContentPresenter.Styles>
+                            <Style Selector="TextBlock">
+                                <Setter Property="FontSize" Value="{TemplateBinding FontSize}"/>
+                                <Setter Property="TextDecorations" Value="Underline"/>
+                            </Style>
+                        </ContentPresenter.Styles>
+                    </ContentPresenter>
+                </ControlTemplate>
+            </Setter>
+        </Style>               
+    </UserControl.Styles>              
+    
+    <Grid Grid.Column="2" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
+        <StackPanel Margin="5" Grid.Row="0" Orientation="Vertical">
+            <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" FontStyle="Italic" />
+            <Button Classes="link" FontSize="20" FontWeight="Bold" 
+                    Content="{Binding SelectedChannelItem.Title}" 
+                    CommandParameter="{Binding SelectedChannelItem.Link}"
+                    Command="{Binding OpenLinkCommand}">
+                <ToolTip.Tip>
+                    <TextBlock Text="{Binding SelectedChannelItem.Link}" FontStyle="Italic" />
+                </ToolTip.Tip>
+            </Button>
+            <Button Classes="link" Grid.Row="1" Margin="0 5" FontStyle="Italic"
+                    Content="{Binding SelectedChannelItem.ChannelTitle}"
+                    CommandParameter="{Binding SelectedChannelItem.ChannelLink}"
+                    Command="{Binding OpenLinkCommand}">
+                <ToolTip.Tip>
+                    <TextBlock Text="{Binding SelectedChannelItem.ChannelLink}" FontStyle="Italic" />
+                </ToolTip.Tip>
+            </Button>
+        </StackPanel>  
+        <av:HtmlPanel  Grid.Row="1" Margin="5" Text="{Binding SelectedChannelItem.Content}" />
+    </Grid>             
+    
+</UserControl>             

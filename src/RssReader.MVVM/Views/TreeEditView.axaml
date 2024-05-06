@@ -6,7 +6,6 @@
              xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Avalonia.Svg"
              xmlns:vm="using:RssReader.MVVM.ViewModels"
              mc:Ignorable="d"
-             d:DesignWidth="300" d:DesignHeight="400"
              x:DataType="vm:TreeEditViewModel" x:CompileBindings="True">
     
     <StackPanel Margin="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">

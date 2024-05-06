@@ -6,7 +6,6 @@
              xmlns:m="using:RssReader.MVVM.Models"
              xmlns:vm="using:RssReader.MVVM.ViewModels"
              mc:Ignorable="d"
-             d:DesignWidth="300" d:DesignHeight="400"
              x:DataType="vm:ChannelsTreeViewModel" x:CompileBindings="True">
     
     <TreeDataGrid ShowColumnHeaders="False" Source="{Binding Source}">

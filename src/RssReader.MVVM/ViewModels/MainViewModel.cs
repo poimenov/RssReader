@@ -1,10 +1,7 @@
 using System;
-using System.Diagnostics;
 using System.Reactive.Linq;
-using System.Runtime.InteropServices;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess;
-using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
@@ -22,25 +19,26 @@ public class MainViewModel : ViewModelBase
         _channelReader = channelReader;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
-        OpenItemLinkCommand = CreateOpenItemLinkCommand();
-        OpenChannelLinkCommand = CreateOpenChannelLinkCommand();
-        ChannelsTreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
+        SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), TriggerPaneCommand);
+        ContentViewModel = new ContentViewModel(new ChannelItems());
+        TreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
         TreeEditViewModel = new TreeEditViewModel();
         HeaderViewModel = new HeaderViewModel();
-        ChannelsTreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
+
+        TreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
             .Where(x => x != null)
             .Subscribe(x =>
             {
-                SelectedChannelItemsViewModel = new ChannelItemsViewModel(new ChannelItems())
+                SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), TriggerPaneCommand)
                 {
                     ChannelModel = x
                 };
 
-                SelectedChannelItemsViewModel.WhenAnyValue(x => x.SelectedChannelItem)
+                SelectedItemsViewModel.WhenAnyValue(x => x.SelectedChannelItem)
                 .Where(x => x != null)
                 .Subscribe(x =>
                 {
-                    SelectedChannelItem = _channelService.GetChannelItem(x!.Id);
+                    ContentViewModel.SelectedChannelItem = _channelService.GetChannelItem(x!.Id);
                 });
             });
     }
@@ -52,21 +50,20 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isPaneOpen, value);
     }
 
+    public ChannelsTreeViewModel TreeViewModel { get; private set; }
 
-    private ChannelItemModel? _selectedChannelItem;
-    public ChannelItemModel? SelectedChannelItem
+    private ChannelItemsViewModel? _selectedItemsViewModel;
+    public ChannelItemsViewModel? SelectedItemsViewModel
     {
-        get => _selectedChannelItem;
-        set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);
+        get => _selectedItemsViewModel;
+        set => this.RaiseAndSetIfChanged(ref _selectedItemsViewModel, value);
     }
 
-    public ChannelsTreeViewModel ChannelsTreeViewModel { get; private set; }
-
-    private ChannelItemsViewModel? _selectedChannelItemsViewModel;
-    public ChannelItemsViewModel? SelectedChannelItemsViewModel
+    private ContentViewModel _contentViewModel;
+    public ContentViewModel ContentViewModel
     {
-        get => _selectedChannelItemsViewModel;
-        set => this.RaiseAndSetIfChanged(ref _selectedChannelItemsViewModel, value);
+        get => _contentViewModel;
+        set => this.RaiseAndSetIfChanged(ref _contentViewModel, value);
     }
 
     private TreeEditViewModel? _treeEditViewModel;
@@ -84,6 +81,7 @@ public class MainViewModel : ViewModelBase
     }
 
     #region Commands
+
     public IReactiveCommand TriggerPaneCommand { get; }
 
     private IReactiveCommand CreateTriggerPaneCommand()
@@ -96,52 +94,5 @@ public class MainViewModel : ViewModelBase
         );
     }
 
-    public IReactiveCommand OpenItemLinkCommand { get; }
-
-    private IReactiveCommand CreateOpenItemLinkCommand()
-    {
-        return ReactiveCommand.Create(
-        () =>
-            {
-                Open(SelectedChannelItemsViewModel?.SelectedChannelItem?.Link);
-            }
-        );
-    }
-
-    public IReactiveCommand OpenChannelLinkCommand { get; }
-    private IReactiveCommand CreateOpenChannelLinkCommand()
-    {
-        return ReactiveCommand.Create(
-        () =>
-            {
-                Open(SelectedChannelItemsViewModel?.ChannelModel?.Link);
-            }
-        );
-    }
     #endregion
-
-    private static void Open(string? path)
-    {
-        if (string.IsNullOrEmpty(path))
-        {
-            return;
-        }
-
-        if (Uri.IsWellFormedUriString(path, UriKind.Absolute))
-        {
-            path = $"\"{path}\"";
-            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-            {
-                Process.Start(new ProcessStartInfo { UseShellExecute = true, FileName = path });
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-            {
-                Process.Start("xdg-open", path);
-            }
-            else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-            {
-                Process.Start("open", path);
-            }
-        }
-    }
 }

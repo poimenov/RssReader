@@ -9,6 +9,7 @@ using DynamicData.Binding;
 using System.Collections.ObjectModel;
 using DynamicData;
 using System.Collections.Generic;
+using RssReader.MVVM.Extensions;
 
 
 namespace RssReader.MVVM.ViewModels;
@@ -16,9 +17,11 @@ namespace RssReader.MVVM.ViewModels;
 public class ChannelItemsViewModel : ViewModelBase
 {
     private readonly IChannelItems _channelItems;
-    public ChannelItemsViewModel(IChannelItems channelItems)
+    public ChannelItemsViewModel(IChannelItems channelItems, IReactiveCommand paneCommand)
     {
         _channelItems = channelItems;
+        PaneCommand = paneCommand;
+
         SourceItems = new ObservableCollectionExtended<ChannelItemModel>();
         SourceItems.ToObservableChangeSet()
             .ObserveOn(RxApp.MainThreadScheduler)
@@ -76,4 +79,6 @@ public class ChannelItemsViewModel : ViewModelBase
         get => _selectedChannelItem;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);
     }
+
+    public IReactiveCommand PaneCommand { get; }
 }

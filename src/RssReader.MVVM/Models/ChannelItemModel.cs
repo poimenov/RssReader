@@ -26,6 +26,7 @@ public class ChannelItemModel
         if (channelItem.Channel != null)
         {
             ChannelTitle = channelItem.Channel.Title;
+            ChannelLink = channelItem.Channel.Link;
         }
 
         if (channelItem.ItemCategories != null)
@@ -41,6 +42,7 @@ public class ChannelItemModel
     public string? Link { get; set; }
     public string? PublishingDate { get; set; }
     public string? ChannelTitle { get; set; }
+    public string? ChannelLink { get; set; }
     public List<KeyValuePair<int, string>>? Categories { get; set; }
 
     private string CleanHtml(string html)
