@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -12,6 +14,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -84,10 +87,8 @@ public class ChannelsTreeViewModel : ViewModelBase
                 GroupId = group.Id,
                 Channel = channel
             }).Where(x => x != null).Select(x => x.Channel).ToList();
-
-        channelsForUpdate.AddRange(SourceItems.Where(x => x.IsChannelsGroup == false).ToList());
-
-        Task.WhenAll(channelsForUpdate.Select(x => _channelReader.ReadChannelAsync(x, default)));
+        channelsForUpdate.AddRange(SourceItems.Where(x => x.IsChannelsGroup == false && x.ModelType == ChannelModelType.Default).ToList());
+        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
     }
 
     #region Items

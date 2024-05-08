@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Avalonia.Threading;
 using CodeHollow.FeedReader;
 using HtmlAgilityPack;
 using log4net;
@@ -53,7 +54,7 @@ public class ChannelReader : IChannelReader
             }
 
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-            Debug.WriteLine($"Start read url = {channel.Url}");
+            Debug.WriteLine($"Start read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
 
             var feed = await FeedReader.ReadAsync(channel.Url, cancellationToken);
 
@@ -88,13 +89,17 @@ public class ChannelReader : IChannelReader
                         Categories = x.Categories.ToArray()
                     }).ToList().ForEach(x => _channelItems.Create(x.Item, x.Categories));
                 }
-                channelModel.Title = channel.Title;
-                channelModel.Description = channel.Description;
-                channelModel.Link = channel.Link;
-                channelModel.ImageUrl = channel.ImageUrl;
-                channelModel.Url = channel.Url;
-                channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
-                Debug.WriteLine($"End read url = {channel.Url}");
+                
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    channelModel.Title = channel.Title;
+                    channelModel.Description = channel.Description;
+                    channelModel.Link = channel.Link;
+                    channelModel.ImageUrl = channel.ImageUrl;
+                    channelModel.Url = channel.Url;
+                    channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
+                });
+                Debug.WriteLine($"End read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             }
         }
         catch (Exception ex)
@@ -104,8 +109,6 @@ public class ChannelReader : IChannelReader
             _log.InfoFormat("Url = {0}", channel.Url);
             _log.Error(ex);
         }
-
-        await Task.Delay(TimeSpan.FromMinutes(1));
     }
 
     public async Task<Channel> ReadChannelAsync(Uri uri)
