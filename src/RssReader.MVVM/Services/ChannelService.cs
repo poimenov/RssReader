@@ -53,6 +53,10 @@ public class ChannelService : IChannelService
             new ChannelModel(group.Id, group.Name, _channels.GetByGroupId(group.Id).Select(x =>
             new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
 
+        retVal.AddRange(_channels.GetByGroupId(null).Select(x =>
+            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link,
+            _channels.GetChannelUnreadCount(x.Id), x.Rank)).ToList());
+
         return retVal;
     }
 

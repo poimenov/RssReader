@@ -74,11 +74,18 @@ public class Channels : IChannels
         }
     }
 
-    public IEnumerable<Channel> GetByGroupId(int groupId)
+    public IEnumerable<Channel> GetByGroupId(int? groupId)
     {
         using (var db = new Database())
         {
-            return db.Channels.Where(x => x.ChannelsGroupId == groupId).OrderBy(x => x.Rank).ToList();
+            if (groupId == null)
+            {
+                return db.Channels.Where(x => x.ChannelsGroupId.HasValue == false).OrderBy(x => x.Rank).ToList();
+            }
+            else
+            {
+                return db.Channels.Where(x => x.ChannelsGroupId == groupId).OrderBy(x => x.Rank).ToList();
+            }
         }
     }
 

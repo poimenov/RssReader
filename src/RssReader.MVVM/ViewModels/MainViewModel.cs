@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Linq;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess;
+using RssReader.MVVM.Services;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
@@ -23,7 +24,13 @@ public class MainViewModel : ViewModelBase
         ContentViewModel = new ContentViewModel(new ChannelItems());
         TreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
         TreeEditViewModel = new TreeEditViewModel();
-        HeaderViewModel = new HeaderViewModel();
+        HeaderViewModel = new HeaderViewModel(new ExportImport(new ChannelsGroups(), new Channels()));
+
+        HeaderViewModel.WhenAnyValue(x => x.ImportCount)
+        .Subscribe(x =>
+        {
+            TreeViewModel.LoadChannels();
+        });
 
         TreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
             .Where(x => x != null)

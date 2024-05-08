@@ -11,7 +11,7 @@ public interface IChannels
     Channel? Get(int id);
     bool Exists(string url);
     IEnumerable<Channel> GetAll();
-    IEnumerable<Channel> GetByGroupId(int groupId);
+    IEnumerable<Channel> GetByGroupId(int? groupId);
     int GetChannelUnreadCount(int channelId);
     int GetAllUnreadCount();
     int GetStarredCount();

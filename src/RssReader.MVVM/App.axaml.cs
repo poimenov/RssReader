@@ -84,7 +84,7 @@ public partial class App : Application
             try
             {
                 GetRequiredService<IDatabaseMigrator>().MigrateDatabase();
-                desktop.MainWindow = GetRequiredService<MainWindow>();
+                desktop.MainWindow = this.TopWindow;
                 desktop.ShutdownRequested += OnShutdownRequested;
                 _ = _host.StartAsync(_cancellationTokenSource.Token);
             }
@@ -118,6 +118,19 @@ public partial class App : Application
         }
     }
     #endregion
+
+    private MainWindow _window;
+    public MainWindow TopWindow
+    {
+        get
+        {
+            if (_window == null)
+            {
+                _window = GetRequiredService<MainWindow>();
+            }
+            return _window;
+        }
+    }
 
     public T GetRequiredService<T>() => _host!.Services.GetRequiredService<T>();
 

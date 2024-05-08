@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using Avalonia;
 using DynamicData.Binding;
 using ReactiveUI;
 
@@ -34,14 +35,18 @@ public class ChannelModel : ReactiveObject
         ModelType = ChannelModelType.Default;
         if (children != null)
         {
+            //UnreadItemsCount = children.Sum(x => x.UnreadItemsCount);
+            foreach (var child in children)
+            {
+                child.Parent = this;
+                // child.WhenAnyValue(x => x.UnreadItemsCount).Subscribe(x =>
+                // {
+                //     UnreadItemsCount = children.Sum(x => x.UnreadItemsCount);
+                // });
+            }
+
             _children = new ObservableCollection<ChannelModel>(children);
         }
-
-        // this.WhenAnyValue(x => x.Children)
-        //     .Subscribe(x =>
-        //      {
-        //          this.RaisePropertyChanged(nameof(UnreadItemsCount));
-        //      });
     }
     public ChannelModel(int id, string title, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank)
     {
@@ -57,6 +62,13 @@ public class ChannelModel : ReactiveObject
         ModelType = ChannelModelType.Default;
     }
     public ChannelModelType ModelType { get; private set; }
+
+    private ChannelModel? _parent;
+    public ChannelModel? Parent
+    {
+        get => _parent;
+        set => this.RaiseAndSetIfChanged(ref _parent, value);
+    }
 
     private ObservableCollection<ChannelModel>? _children;
     public ObservableCollection<ChannelModel>? Children { get => _children; }
@@ -102,10 +114,28 @@ public class ChannelModel : ReactiveObject
     private int _unreadItemsCount;
     public int UnreadItemsCount
     {
+        // get => _unreadItemsCount;
+        // set
+        // {
+        //     var diff = value - _unreadItemsCount;
+        //     this.RaiseAndSetIfChanged(ref _unreadItemsCount, value);
+        //     if (Parent != null)
+        //     {
+        //         Parent.UnreadItemsCount += diff;
+        //     }
+        // }
         get
         {
             return IsChannelsGroup ? Children?.Sum(c => c.UnreadItemsCount) ?? 0 : _unreadItemsCount;
         }
         set => this.RaiseAndSetIfChanged(ref _unreadItemsCount, value);
+        // set
+        // {
+        //     this.RaiseAndSetIfChanged(ref _unreadItemsCount, value);
+        //     if (Parent != null)
+        //     {
+        //         Parent.RaisePropertyChanged(nameof(UnreadItemsCount));
+        //     }
+        // }
     }
 }

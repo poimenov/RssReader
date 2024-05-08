@@ -16,11 +16,10 @@ public class Channel
 
     [ForeignKey(nameof(ChannelsGroupId))]
     [Browsable(false)]
-    public int ChannelsGroupId { get; set; }
+    public int? ChannelsGroupId { get; set; }
 
-    [Required]
     [DisplayName("ChannelsGroup")]
-    public ChannelsGroup ChannelsGroup { get; set; }
+    public ChannelsGroup? ChannelsGroup { get; set; }
 
     [Browsable(false)]
     public int Rank { get; set; }

@@ -44,7 +44,7 @@ namespace RssReader.MVVM.DataAccess.Migrations
                 {
                     Id = table.Column<int>(type: "INTEGER", nullable: false)
                         .Annotation("Sqlite:Autoincrement", true),
-                    ChannelsGroupId = table.Column<int>(type: "INTEGER", nullable: false),
+                    ChannelsGroupId = table.Column<int>(type: "INTEGER", nullable: true),
                     Rank = table.Column<int>(type: "INTEGER", nullable: false),
                     Title = table.Column<string>(type: "TEXT", maxLength: 250, nullable: false),
                     Description = table.Column<string>(type: "TEXT", nullable: true),
@@ -61,8 +61,7 @@ namespace RssReader.MVVM.DataAccess.Migrations
                         name: "FK_Channels_ChannelsGroups_ChannelsGroupId",
                         column: x => x.ChannelsGroupId,
                         principalTable: "ChannelsGroups",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(

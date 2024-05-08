@@ -39,7 +39,7 @@ namespace RssReader.MVVM.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ChannelsGroupId")
+                    b.Property<int?>("ChannelsGroupId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
@@ -168,9 +168,7 @@ namespace RssReader.MVVM.DataAccess.Migrations
                 {
                     b.HasOne("RssReader.MVVM.DataAccess.Models.ChannelsGroup", "ChannelsGroup")
                         .WithMany("Channels")
-                        .HasForeignKey("ChannelsGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ChannelsGroupId");
 
                     b.Navigation("ChannelsGroup");
                 });

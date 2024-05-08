@@ -1,5 +1,7 @@
+using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Xml.Linq;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
@@ -19,7 +21,36 @@ public class ExportImport : IExportImport
 
     public void Export(string filePath)
     {
-        throw new System.NotImplementedException();
+        var xdoc = new XDocument();
+        var opml = new XElement("opml", new XAttribute("version", "1.0"));
+        xdoc.Add(opml);
+        var head = new XElement("head");
+        opml.Add(head);
+        var title = new XElement("title")
+        {
+            Value = "RSS Reader Subscriptions"
+        };
+        head.Add(title);
+        var body = new XElement("body");
+        opml.Add(body);
+        foreach (var group in _channelsGroups.GetAll())
+        {
+            var groupElement = new XElement("outline",
+                new XAttribute("text", group.Name),
+                new XAttribute("title", group.Name));
+            foreach (var channel in _channels.GetByGroupId(group.Id))
+            {
+                groupElement.Add(GetOutlineByChannel(channel));
+            }
+
+            body.Add(groupElement);
+        }
+
+        foreach (var channel in _channels.GetByGroupId(null))
+        {
+            body.Add(GetOutlineByChannel(channel));
+        }
+        xdoc.Save(filePath);
     }
 
     public void Import(string filePath)
@@ -36,37 +67,66 @@ public class ExportImport : IExportImport
         {
             foreach (var item in items)
             {
-                var groupName = item.Attribute("text")?.Value;
-                if (!string.IsNullOrEmpty(groupName))
+                if (item.Attributes().Any(x => x.Name == "xmlUrl") && item.Attribute("type")?.Value == "rss")
                 {
-                    var group = _channelsGroups.Get(groupName);
-                    if (group == null)
+                    ImportChannel(item);
+                }
+                else
+                {
+                    var groupName = item.Attribute("text")?.Value;
+                    if (!string.IsNullOrEmpty(groupName))
                     {
-                        group = new ChannelsGroup { Name = groupName };
-                        _channelsGroups.Create(group);
-                    }
-
-                    foreach (var child in item.Elements("outline"))
-                    {
-                        var url = child.Attribute("xmlUrl")?.Value;
-                        var link = child.Attribute("htmlUrl")?.Value;
-                        var title = child.Attribute("text")?.Value;
-                        if (!string.IsNullOrEmpty(url) && !_channels.Exists(url) && !string.IsNullOrEmpty(title))
+                        var group = _channelsGroups.Get(groupName);
+                        if (group == null)
                         {
-                            var channel = new Channel
-                            {
-                                Url = url,
-                                Link = link,
-                                ChannelsGroupId = group.Id,
-                                Title = title
-                            };
-                            _channels.Create(channel);
+                            group = new ChannelsGroup { Name = groupName };
+                            _channelsGroups.Create(group);
+                        }
+
+                        foreach (var child in item.Elements("outline"))
+                        {
+                            ImportChannel(child, group.Id);
                         }
                     }
                 }
+
             }
 
             Debug.WriteLine("Import completed");
+        }
+    }
+
+    private XElement GetOutlineByChannel(Channel channel)
+    {
+        var siteLink = string.IsNullOrEmpty(channel.Link) ? new Uri(channel.Url).GetLeftPart(UriPartial.Authority) : channel.Link;
+        return new XElement("outline",
+            new XAttribute("type", "rss"),
+            new XAttribute("text", channel.Title),
+            new XAttribute("title", channel.Title),
+            new XAttribute("xmlUrl", channel.Url),
+            new XAttribute("htmlUrl", siteLink));
+    }
+
+    private void ImportChannel(XElement item, int? groupId = null)
+    {
+        Debug.WriteLine(item.Attribute("title")?.Value);
+        if (item != null && item.Name == "outline" && item.Attribute("xmlUrl") != null)
+        {
+            var url = item.Attribute("xmlUrl")?.Value;
+            var link = item.Attribute("htmlUrl")?.Value;
+            var title = item.Attribute("title")?.Value;
+            if (!string.IsNullOrEmpty(url) && !_channels.Exists(url) && !string.IsNullOrEmpty(title))
+            {
+                var channel = new Channel
+                {
+                    Url = url,
+                    Link = link,
+                    Title = title,
+                    ChannelsGroupId = groupId
+                };
+                var id = _channels.Create(channel);
+                Debug.WriteLine($"Channel {title} with xmlUrl='{url}' imported. Id={id}");
+            }
         }
     }
 }

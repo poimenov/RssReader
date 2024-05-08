@@ -11,7 +11,7 @@ using RssReader.MVVM.DataAccess;
 namespace RssReader.MVVM.DataAccess.Migrations
 {
     [DbContext(typeof(Database))]
-    [Migration("20240422134234_InitialCreate")]
+    [Migration("20240507122628_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -42,7 +42,7 @@ namespace RssReader.MVVM.DataAccess.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");
 
-                    b.Property<int>("ChannelsGroupId")
+                    b.Property<int?>("ChannelsGroupId")
                         .HasColumnType("INTEGER");
 
                     b.Property<string>("Description")
@@ -171,9 +171,7 @@ namespace RssReader.MVVM.DataAccess.Migrations
                 {
                     b.HasOne("RssReader.MVVM.DataAccess.Models.ChannelsGroup", "ChannelsGroup")
                         .WithMany("Channels")
-                        .HasForeignKey("ChannelsGroupId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
+                        .HasForeignKey("ChannelsGroupId");
 
                     b.Navigation("ChannelsGroup");
                 });

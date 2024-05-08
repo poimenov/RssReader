@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:svg="clr-namespace:Avalonia.Svg;assembly=Avalonia.Svg"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"               
              xmlns:vm="using:RssReader.MVVM.ViewModels"
              mc:Ignorable="d"
              x:DataType="vm:HeaderViewModel" x:CompileBindings="True">
@@ -19,7 +21,7 @@
         </Style>  
         <Style Selector="Button.main:pointerover PathIcon">
             <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
-        </Style>               
+        </Style>          
     </UserControl.Styles>              
     
     <Grid Height="45" Background="#8B44AC"
@@ -37,10 +39,21 @@
                       Margin="0,0,0,0"
                       Data="{StaticResource GistIcon}"/>                 
         </Button>
-        <Button Grid.Column="4" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
+        <Button Grid.Column="4" x:Name="SettingsButton" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
             <PathIcon Width="16" Height="16" 
                       Margin="0,0,0,0"
-                      Data="{StaticResource SettingsIcon}"/>                 
+                      Data="{StaticResource SettingsIcon}"/> 
+            <Button.ContextMenu>
+                <ContextMenu x:Name="SettingsMenu">
+                    <MenuItem Header="Import opml" Command="{Binding ImportCommand}"/>
+                    <MenuItem Header="Export opml" Command="{Binding ExportCommand}"/>
+                </ContextMenu>
+            </Button.ContextMenu>  
+            <i:Interaction.Behaviors>
+                <ia:EventTriggerBehavior EventName="Click" SourceObject="SettingsButton"> 
+                    <ia:CallMethodAction TargetObject="SettingsMenu" MethodName="Open" />                  
+                </ia:EventTriggerBehavior>
+            </i:Interaction.Behaviors>                          
         </Button>                 
     </Grid>              
     

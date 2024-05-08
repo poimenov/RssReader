@@ -30,20 +30,14 @@ public class ChannelsTreeViewModel : ViewModelBase
         _channelsService = channelsService;
         _channelReader = channelReader;
 
-        SourceItems = new ObservableCollectionExtended<ChannelModel>
-        {
-            _channelsService.GetChannel(ChannelModelType.All),
-            _channelsService.GetChannel(ChannelModelType.Starred),
-            _channelsService.GetChannel(ChannelModelType.ReadLater)
-        };
-        SourceItems.AddRange(_channelsService.GetChannels());
+        SourceItems = new ObservableCollectionExtended<ChannelModel>();
 
         SourceItems.ToObservableChangeSet()
             .ObserveOn(RxApp.MainThreadScheduler)
             .Bind(out _items)
             .Subscribe();
 
-        var source = new HierarchicalTreeDataGridSource<ChannelModel>(Items)
+        var source = new HierarchicalTreeDataGridSource<ChannelModel>(Array.Empty<ChannelModel>())
         {
             Columns =
             {
@@ -68,19 +62,32 @@ public class ChannelsTreeViewModel : ViewModelBase
 
         Source = source;
 
-        var channelsForUpdate = SourceItems.Where(x => x.Children != null)
+        LoadChannels();
+    }
+
+    public void LoadChannels()
+    {
+        SourceItems.Clear();
+        var items = new ObservableCollectionExtended<ChannelModel>
+        {
+            _channelsService.GetChannel(ChannelModelType.All),
+            _channelsService.GetChannel(ChannelModelType.Starred),
+            _channelsService.GetChannel(ChannelModelType.ReadLater)
+        };
+        items.AddRange(_channelsService.GetChannels());
+        SourceItems.AddRange(items);
+        ((HierarchicalTreeDataGridSource<ChannelModel>)Source).Items = Items;
+
+        var channelsForUpdate = SourceItems.Where(x => x.IsChannelsGroup == true && x.Children != null && x.Children.Count > 0)
             .SelectMany(x => x.Children!, (group, channel) => new
             {
                 GroupId = group.Id,
                 Channel = channel
-            }).Where(x => x != null);
+            }).Where(x => x != null).Select(x => x.Channel).ToList();
 
-        var options = new ParallelOptions()
-        {
-            MaxDegreeOfParallelism = 10
-        };
+        channelsForUpdate.AddRange(SourceItems.Where(x => x.IsChannelsGroup == false).ToList());
 
-        //Parallel.ForEachAsync(channelsForUpdate, options, async (x, ct) => { await _channelReader.ReadChannelAsync(x.Channel!, ct); });
+        Task.WhenAll(channelsForUpdate.Select(x => _channelReader.ReadChannelAsync(x, default)));
     }
 
     #region Items

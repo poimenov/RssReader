@@ -5,6 +5,9 @@ using RssReader.MVVM.DataAccess.Interfaces;
 
 namespace RssReader.MVVM.DataAccess;
 
+/// <summary>
+/// dotnet ef migrations add InitialCreate -o DataAccess/Migrations
+/// </summary>
 public class DatabaseMigrator : IDatabaseMigrator
 {
     private readonly ILogger<DatabaseMigrator> _logger;
