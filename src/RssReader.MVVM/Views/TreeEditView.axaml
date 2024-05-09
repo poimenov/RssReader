@@ -9,7 +9,7 @@
              x:DataType="vm:TreeEditViewModel" x:CompileBindings="True">
     
     <StackPanel Margin="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-        <Button>
+        <Button ToolTip.Tip="Add">
             <Button.Content>
                 <Image Width="16" Height="16">
                     <Image.Source>
@@ -39,7 +39,7 @@
                 </Flyout>
             </Button.Flyout>                        
         </Button>
-        <Button>
+        <Button ToolTip.Tip="Delete">
             <Button.Content>
                 <Image Width="16" Height="16">
                     <Image.Source>

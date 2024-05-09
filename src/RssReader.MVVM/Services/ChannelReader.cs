@@ -10,6 +10,7 @@ using Avalonia.Threading;
 using CodeHollow.FeedReader;
 using HtmlAgilityPack;
 using log4net;
+using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
@@ -89,7 +90,7 @@ public class ChannelReader : IChannelReader
                         Categories = x.Categories.ToArray()
                     }).ToList().ForEach(x => _channelItems.Create(x.Item, x.Categories));
                 }
-                
+
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     channelModel.Title = channel.Title;

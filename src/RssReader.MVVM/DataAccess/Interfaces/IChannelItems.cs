@@ -7,6 +7,9 @@ public interface IChannelItems
 {
     long Create(ChannelItem channelItem, string[] categories);
     void SetRead(long id, bool isRead);
+    void SetReadByGroupId(int groupId, bool isRead);
+    void SetReadByChannelId(int channelId, bool isRead);
+    void SetReadAll(bool isRead);
     void SetFavorite(long id, bool isFavorite);
     void SetDeleted(long id, bool isDeleted);
     void SetReadLater(long id, bool isReadLater);

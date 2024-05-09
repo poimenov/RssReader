@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using RssReader.MVVM.DataAccess.Interfaces;
@@ -191,6 +193,52 @@ public class ChannelItems : IChannelItems
                 var item = db.ChannelItems.First(x => x.Id == id);
                 item.IsRead = isRead;
                 db.SaveChanges();
+            }
+        }
+    }
+
+    public void SetReadAll(bool isRead)
+    {
+        using (var db = new Database())
+        {
+            if (db.ChannelItems.Where(x => x.IsRead == !isRead).Any())
+            {
+                FormattableString sql = $"UPDATE [ChannelItems] SET [IsRead] = {(isRead ? 1 : 0)}";
+                Debug.WriteLine(sql);
+                db.Database.ExecuteSql(sql);
+            }
+        }
+    }
+
+    public void SetReadByChannelId(int channelId, bool isRead)
+    {
+        using (var db = new Database())
+        {
+            if (db.ChannelItems.Where(x => x.ChannelId == channelId && x.IsRead == !isRead).Any())
+            {
+                FormattableString sql = $"UPDATE [ChannelItems] SET [IsRead] = {(isRead ? 1 : 0)} WHERE [ChannelId] = {channelId}";
+                Debug.WriteLine(sql);
+                db.Database.ExecuteSql(sql);
+            }
+        }
+    }
+
+    public void SetReadByGroupId(int groupId, bool isRead)
+    {
+        using (var db = new Database())
+        {
+            if (db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId && x.IsRead == !isRead).Any())
+            {
+                FormattableString sql = $@"
+                    UPDATE [ChannelItems]
+                        SET [IsRead] = {(isRead ? 1 : 0)}
+                    WHERE [ChannelItems].[Id] IN (
+                        SELECT CI.[Id]
+                        FROM [ChannelItems] AS CI
+                        INNER JOIN [Channels] AS C ON C.[Id] = CI.[ChannelId]
+                        WHERE CI.[IsRead] = {(isRead ? 0 : 1)} AND C.[ChannelsGroupId] = {groupId})";
+                Debug.WriteLine(sql);
+                db.Database.ExecuteSql(sql);
             }
         }
     }

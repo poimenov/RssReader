@@ -9,7 +9,6 @@ using DynamicData.Binding;
 using System.Collections.ObjectModel;
 using DynamicData;
 using System.Collections.Generic;
-using RssReader.MVVM.Extensions;
 
 
 namespace RssReader.MVVM.ViewModels;
@@ -21,6 +20,7 @@ public class ChannelItemsViewModel : ViewModelBase
     {
         _channelItems = channelItems;
         PaneCommand = paneCommand;
+        MarkAsReadCommand = CreateMarkAsReadCommand();
 
         SourceItems = new ObservableCollectionExtended<ChannelItemModel>();
         SourceItems.ToObservableChangeSet()
@@ -81,4 +81,47 @@ public class ChannelItemsViewModel : ViewModelBase
     }
 
     public IReactiveCommand PaneCommand { get; }
+
+
+    public IReactiveCommand MarkAsReadCommand { get; }
+    private IReactiveCommand CreateMarkAsReadCommand()
+    {
+        return ReactiveCommand.Create(
+            () =>
+            {
+                if (ChannelModel is not null)
+                {
+                    if (ChannelModel.ModelType == ChannelModelType.Default)
+                    {
+                        if (ChannelModel.IsChannelsGroup)
+                        {
+                            _channelItems.SetReadByGroupId(ChannelModel.Id, true);
+                            if (ChannelModel.Children is not null)
+                            {
+                                foreach (var child in ChannelModel.Children)
+                                {
+                                    child.UnreadItemsCount = 0;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _channelItems.SetReadByChannelId(ChannelModel.Id, true);
+                            ChannelModel.UnreadItemsCount = 0;
+                        }
+                    }
+                    else if (ChannelModel.ModelType == ChannelModelType.All)
+                    {
+                        _channelItems.SetReadAll(true);
+                        ChannelModel.UnreadItemsCount = 0;
+                    }
+                    foreach (var item in SourceItems)
+                    {
+                        item.IsRead = true;
+                    }
+                }
+            }, this.WhenAnyValue(x => x.ChannelModel, (m) => m is not null && m.UnreadItemsCount > 0 &&
+                        (m.ModelType == ChannelModelType.Default || m.ModelType == ChannelModelType.All))
+        );
+    }
 }

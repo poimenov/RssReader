@@ -3,11 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
+using ReactiveUI;
 using RssReader.MVVM.DataAccess.Models;
 
 namespace RssReader.MVVM.Models;
 
-public class ChannelItemModel
+public class ChannelItemModel : ReactiveObject
 {
     public ChannelItemModel(ChannelItem? channelItem)
     {
@@ -23,6 +24,10 @@ public class ChannelItemModel
         Content = string.IsNullOrEmpty(channelItem.Content) ? channelItem.Description : channelItem.Content;
         Link = channelItem.Link;
         PublishingDate = GetPublishingDate(channelItem.PublishingDate);
+        IsRead = channelItem.IsRead;
+        IsDeleted = channelItem.IsDeleted;
+        IsFavorite = channelItem.IsFavorite;
+        IsReadLater = channelItem.IsReadLater;
         if (channelItem.Channel != null)
         {
             ChannelTitle = channelItem.Channel.Title;
@@ -43,6 +48,34 @@ public class ChannelItemModel
     public string? PublishingDate { get; set; }
     public string? ChannelTitle { get; set; }
     public string? ChannelLink { get; set; }
+
+    private bool _isRead;
+    public bool IsRead
+    {
+        get => _isRead;
+        set => this.RaiseAndSetIfChanged(ref _isRead, value);
+    }
+
+    private bool _isFavorite;
+    public bool IsFavorite
+    {
+        get => _isFavorite;
+        set => this.RaiseAndSetIfChanged(ref _isFavorite, value);
+    }
+
+    private bool _isReadLater;
+    public bool IsReadLater
+    {
+        get => _isReadLater;
+        set => this.RaiseAndSetIfChanged(ref _isReadLater, value);
+    }
+    private bool _isDeleted;
+    public bool IsDeleted
+    {
+        get => _isDeleted;
+        set => this.RaiseAndSetIfChanged(ref _isDeleted, value);
+    }
+
     public List<KeyValuePair<int, string>>? Categories { get; set; }
 
     private string CleanHtml(string html)
