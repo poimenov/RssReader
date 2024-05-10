@@ -9,6 +9,8 @@ using DynamicData.Binding;
 using System.Collections.ObjectModel;
 using DynamicData;
 using System.Collections.Generic;
+using RssReader.MVVM.Services.Interfaces;
+using System.Threading.Tasks;
 
 
 namespace RssReader.MVVM.ViewModels;
@@ -16,15 +18,19 @@ namespace RssReader.MVVM.ViewModels;
 public class ChannelItemsViewModel : ViewModelBase
 {
     private readonly IChannelItems _channelItems;
-    public ChannelItemsViewModel(IChannelItems channelItems, IReactiveCommand paneCommand)
+    private readonly IChannelReader _channelReader;
+    public ChannelItemsViewModel(IChannelItems channelItems, IChannelReader channelReader, IReactiveCommand paneCommand)
     {
         _channelItems = channelItems;
+        _channelReader = channelReader;
         PaneCommand = paneCommand;
         MarkAsReadCommand = CreateMarkAsReadCommand();
+        RefreshCommand = CreateRefreshCommand();
 
         SourceItems = new ObservableCollectionExtended<ChannelItemModel>();
         SourceItems.ToObservableChangeSet()
             .ObserveOn(RxApp.MainThreadScheduler)
+            .Filter(Filter)
             .Bind(out _items)
             .Subscribe();
 
@@ -60,11 +66,39 @@ public class ChannelItemsViewModel : ViewModelBase
             });
     }
 
+    private IObservable<Func<ChannelItemModel, bool>> Filter =>
+        this.WhenAnyValue(x => x.SearchText)
+            .Select((x) => MakeFilter(x));
+
+    private Func<ChannelItemModel, bool> MakeFilter(string? searchText)
+    {
+        return item =>
+        {
+            var retVal = true;
+            if (!string.IsNullOrEmpty(searchText) && searchText?.Length > 3)
+            {
+                var inTitle = item.Title.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+                var inDescription = item.Description?.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+                var inContent = item.Content?.Contains(searchText, StringComparison.OrdinalIgnoreCase);
+                retVal = inTitle || (inDescription ?? false) || (inContent ?? false);
+            }
+
+            return retVal;
+        };
+    }
+
     private ChannelModel? _channelModel;
     public ChannelModel? ChannelModel
     {
         get => _channelModel;
         set => this.RaiseAndSetIfChanged(ref _channelModel, value);
+    }
+
+    private List<ChannelModel>? _allChannels;
+    public List<ChannelModel>? AllChannels
+    {
+        get => _allChannels;
+        set => this.RaiseAndSetIfChanged(ref _allChannels, value);
     }
 
     #region Items
@@ -80,8 +114,51 @@ public class ChannelItemsViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);
     }
 
+    private string? _searchText;
+    public string? SearchText
+    {
+        get => _searchText;
+        set => this.RaiseAndSetIfChanged(ref _searchText, value);
+    }
+
     public IReactiveCommand PaneCommand { get; }
 
+    public IReactiveCommand RefreshCommand { get; }
+    private IReactiveCommand CreateRefreshCommand()
+    {
+        return ReactiveCommand.Create(
+            async () =>
+            {
+                if (ChannelModel is not null &&
+                        ChannelModel.ModelType != ChannelModelType.Starred &&
+                        ChannelModel.ModelType != ChannelModelType.ReadLater)
+                {
+                    IEnumerable<ChannelItem> items;
+                    if (ChannelModel.ModelType == ChannelModelType.Default)
+                    {
+                        if (ChannelModel.IsChannelsGroup && ChannelModel.Children!.Any())
+                        {
+                            await Task.WhenAll(ChannelModel.Children!.Select(x => _channelReader.ReadChannelAsync(x, default)));
+                            items = _channelItems.GetByGroupId(ChannelModel.Id);
+                        }
+                        else
+                        {
+                            await _channelReader.ReadChannelAsync(ChannelModel, default);
+                            items = _channelItems.GetByChannelId(ChannelModel.Id);
+                        }
+                    }
+                    else
+                    {
+                        await Task.WhenAll(AllChannels!.Select(x => _channelReader.ReadChannelAsync(x, default)));
+                        items = _channelItems.GetByRead(false);
+                    }
+
+                    SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+                }
+            }, this.WhenAnyValue(x => x.ChannelModel, (m) => m is not null &&
+                        m.ModelType != ChannelModelType.Starred && m.ModelType != ChannelModelType.ReadLater)
+        );
+    }
 
     public IReactiveCommand MarkAsReadCommand { get; }
     private IReactiveCommand CreateMarkAsReadCommand()
@@ -115,6 +192,7 @@ public class ChannelItemsViewModel : ViewModelBase
                         _channelItems.SetReadAll(true);
                         ChannelModel.UnreadItemsCount = 0;
                     }
+
                     foreach (var item in SourceItems)
                     {
                         item.IsRead = true;

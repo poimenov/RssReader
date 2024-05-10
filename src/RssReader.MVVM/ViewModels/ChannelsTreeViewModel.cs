@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
@@ -14,7 +12,6 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using Avalonia.Threading;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
@@ -71,9 +68,10 @@ public class ChannelsTreeViewModel : ViewModelBase
     public void LoadChannels()
     {
         SourceItems.Clear();
+        var channelAll = _channelsService.GetChannel(ChannelModelType.All);
         var items = new ObservableCollectionExtended<ChannelModel>
         {
-            _channelsService.GetChannel(ChannelModelType.All),
+            channelAll,
             _channelsService.GetChannel(ChannelModelType.Starred),
             _channelsService.GetChannel(ChannelModelType.ReadLater)
         };
@@ -81,14 +79,29 @@ public class ChannelsTreeViewModel : ViewModelBase
         SourceItems.AddRange(items);
         ((HierarchicalTreeDataGridSource<ChannelModel>)Source).Items = Items;
 
-        var channelsForUpdate = SourceItems.Where(x => x.IsChannelsGroup == true && x.Children != null && x.Children.Count > 0)
+        var channelsForUpdate = GetChannelsForUpdate();
+
+        channelsForUpdate.ForEach(x => x.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); }));
+
+        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
+    }
+
+    public List<ChannelModel> GetChannelsForUpdate()
+    {
+        var retVal = SourceItems.Where(x => x.IsChannelsGroup == true && x.Children != null && x.Children.Count > 0)
             .SelectMany(x => x.Children!, (group, channel) => new
             {
                 GroupId = group.Id,
                 Channel = channel
             }).Where(x => x != null).Select(x => x.Channel).ToList();
-        channelsForUpdate.AddRange(SourceItems.Where(x => x.IsChannelsGroup == false && x.ModelType == ChannelModelType.Default).ToList());
-        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
+        retVal.AddRange(SourceItems.Where(x => x.IsChannelsGroup == false && x.ModelType == ChannelModelType.Default).ToList());
+        return retVal;
+    }
+
+    private int GetAllUnreadCount()
+    {
+        var channelsForUpdate = GetChannelsForUpdate();
+        return channelsForUpdate.Sum(x => x.UnreadItemsCount);
     }
 
     #region Items

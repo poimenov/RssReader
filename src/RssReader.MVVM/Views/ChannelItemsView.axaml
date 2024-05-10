@@ -14,7 +14,7 @@
             <Button Grid.Column="0" Width="32" Height="32" Command="{Binding PaneCommand}" ToolTip.Tip="Hide/Pin sidebar">
                 <PathIcon Height="11" Data="{StaticResource LineHorizontal3Regular}" />
             </Button> 
-            <TextBox Height="32" Margin="5,0,0,0" Grid.Column="1" HorizontalAlignment="Stretch" ToolTip.Tip="Search in this feed" />  
+            <TextBox Height="32" Margin="5,0,0,0" Grid.Column="1" HorizontalAlignment="Stretch" Text="{Binding SearchText}" ToolTip.Tip="Search in this feed" />  
             <Button Width="32" Height="32" Margin="5,0,0,0" Grid.Column="2" ToolTip.Tip="Mark as read" Command="{Binding MarkAsReadCommand}">
                 <Button.Content>
                     <Image Width="16" Height="16">
@@ -24,7 +24,7 @@
                     </Image>                            
                 </Button.Content>                        
             </Button>  
-            <Button Width="32" Height="32" Margin="5,0,0,0" Grid.Column="3" ToolTip.Tip="Refresh">
+            <Button Width="32" Height="32" Margin="5,0,0,0" Grid.Column="3" ToolTip.Tip="Refresh" Command="{Binding RefreshCommand}">
                 <Button.Content>
                     <Image Width="16" Height="16">
                         <Image.Source>

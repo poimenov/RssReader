@@ -20,7 +20,7 @@ public class MainViewModel : ViewModelBase
         _channelReader = channelReader;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
-        SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), TriggerPaneCommand);
+        SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), _channelReader, TriggerPaneCommand);
         ContentViewModel = new ContentViewModel(new ChannelItems());
         TreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
         TreeEditViewModel = new TreeEditViewModel();
@@ -36,9 +36,10 @@ public class MainViewModel : ViewModelBase
             .Where(x => x != null)
             .Subscribe(x =>
             {
-                SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), TriggerPaneCommand)
+                SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), _channelReader, TriggerPaneCommand)
                 {
-                    ChannelModel = x
+                    ChannelModel = x,
+                    AllChannels = TreeViewModel.GetChannelsForUpdate()
                 };
 
                 SelectedItemsViewModel.WhenAnyValue(x => x.SelectedChannelItem)
@@ -66,8 +67,8 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _selectedItemsViewModel, value);
     }
 
-    private ContentViewModel _contentViewModel;
-    public ContentViewModel ContentViewModel
+    private ContentViewModel? _contentViewModel;
+    public ContentViewModel? ContentViewModel
     {
         get => _contentViewModel;
         set => this.RaiseAndSetIfChanged(ref _contentViewModel, value);

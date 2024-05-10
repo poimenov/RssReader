@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
-using Avalonia;
-using DynamicData.Binding;
 using ReactiveUI;
 
 namespace RssReader.MVVM.Models;
