@@ -20,10 +20,12 @@ public class MainViewModel : ViewModelBase
         _channelReader = channelReader;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
-        SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), _channelReader, TriggerPaneCommand);
+        SelectedItemsViewModel = new ItemsViewModel(new ChannelItems(), _channelReader)
+        {
+            PaneCommand = TriggerPaneCommand
+        };
         ContentViewModel = new ContentViewModel(new ChannelItems());
-        TreeViewModel = new ChannelsTreeViewModel(_channelService, _channelReader);
-        TreeEditViewModel = new TreeEditViewModel();
+        TreeViewModel = new TreeViewModel(_channelService, _channelReader);
         HeaderViewModel = new HeaderViewModel(new ExportImport(new ChannelsGroups(), new Channels()));
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
@@ -36,10 +38,11 @@ public class MainViewModel : ViewModelBase
             .Where(x => x != null)
             .Subscribe(x =>
             {
-                SelectedItemsViewModel = new ChannelItemsViewModel(new ChannelItems(), _channelReader, TriggerPaneCommand)
+                SelectedItemsViewModel = new ItemsViewModel(new ChannelItems(), _channelReader)
                 {
                     ChannelModel = x,
-                    AllChannels = TreeViewModel.GetChannelsForUpdate()
+                    AllChannels = TreeViewModel.GetChannelsForUpdate(),
+                    PaneCommand = TriggerPaneCommand
                 };
 
                 SelectedItemsViewModel.WhenAnyValue(x => x.SelectedChannelItem)
@@ -58,10 +61,10 @@ public class MainViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _isPaneOpen, value);
     }
 
-    public ChannelsTreeViewModel TreeViewModel { get; private set; }
+    public TreeViewModel TreeViewModel { get; private set; }
 
-    private ChannelItemsViewModel? _selectedItemsViewModel;
-    public ChannelItemsViewModel? SelectedItemsViewModel
+    private ItemsViewModel? _selectedItemsViewModel;
+    public ItemsViewModel? SelectedItemsViewModel
     {
         get => _selectedItemsViewModel;
         set => this.RaiseAndSetIfChanged(ref _selectedItemsViewModel, value);
@@ -72,13 +75,6 @@ public class MainViewModel : ViewModelBase
     {
         get => _contentViewModel;
         set => this.RaiseAndSetIfChanged(ref _contentViewModel, value);
-    }
-
-    private TreeEditViewModel? _treeEditViewModel;
-    public TreeEditViewModel? TreeEditViewModel
-    {
-        get => _treeEditViewModel;
-        set => this.RaiseAndSetIfChanged(ref _treeEditViewModel, value);
     }
 
     private HeaderViewModel? _headerViewModel;

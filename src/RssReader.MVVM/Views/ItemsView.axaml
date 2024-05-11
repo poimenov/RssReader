@@ -1,4 +1,4 @@
-<UserControl x:Class="RssReader.MVVM.Views.ChannelItemsView"
+<UserControl x:Class="RssReader.MVVM.Views.ItemsView"
              xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -7,7 +7,16 @@
              xmlns:vm="using:RssReader.MVVM.ViewModels"
              xmlns:m="using:RssReader.MVVM.Models"   
              mc:Ignorable="d"
-             x:DataType="vm:ChannelItemsViewModel" x:CompileBindings="True">                
+             x:DataType="vm:ItemsViewModel" x:CompileBindings="True">  
+    
+    <UserControl.Styles>
+        <Style Selector="Button.main">
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>            
+        </Style>
+    </UserControl.Styles>                           
     
     <Grid RowDefinitions="Auto,Auto,*" HorizontalAlignment="Stretch">
         <Grid Grid.Row="0" Margin="5" ColumnDefinitions="Auto,*,Auto,Auto">
@@ -15,24 +24,10 @@
                 <PathIcon Height="11" Data="{StaticResource LineHorizontal3Regular}" />
             </Button> 
             <TextBox Height="32" Margin="5,0,0,0" Grid.Column="1" HorizontalAlignment="Stretch" Text="{Binding SearchText}" ToolTip.Tip="Search in this feed" />  
-            <Button Width="32" Height="32" Margin="5,0,0,0" Grid.Column="2" ToolTip.Tip="Mark as read" Command="{Binding MarkAsReadCommand}">
-                <Button.Content>
-                    <Image Width="16" Height="16">
-                        <Image.Source>
-                            <svg:SvgImage Source="/Assets/accept-check-good-mark-ok-tick-svgrepo-com.svg" />
-                        </Image.Source>
-                    </Image>                            
-                </Button.Content>                        
-            </Button>  
-            <Button Width="32" Height="32" Margin="5,0,0,0" Grid.Column="3" ToolTip.Tip="Refresh" Command="{Binding RefreshCommand}">
-                <Button.Content>
-                    <Image Width="16" Height="16">
-                        <Image.Source>
-                            <svg:SvgImage Source="/Assets/refresh-reload-update-svgrepo-com.svg" />
-                        </Image.Source>
-                    </Image>                            
-                </Button.Content>                        
-            </Button>                             
+            <Button Margin="5,0,0,0" Grid.Column="2" ToolTip.Tip="Mark as read" Command="{Binding MarkAsReadCommand}"
+                    Classes="main" Content="{SvgImage /Assets/accept-check-good-mark-ok-tick-svgrepo-com.svg}" />                       
+            <Button Width="32" Height="32" Margin="5,0,0,0" Grid.Column="3" ToolTip.Tip="Refresh" Command="{Binding RefreshCommand}"
+                    Classes="main" Content="{SvgImage /Assets/refresh-reload-update-svgrepo-com.svg}" />                            
         </Grid>
         <TextBlock Grid.Row="1" Margin="5" FontSize="18" FontWeight="Bold" Text="{Binding ChannelModel.Title}" />
         

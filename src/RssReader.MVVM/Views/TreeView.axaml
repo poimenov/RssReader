@@ -1,0 +1,73 @@
+<UserControl x:Class="RssReader.MVVM.Views.TreeView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:m="using:RssReader.MVVM.Models"
+             xmlns:vm="using:RssReader.MVVM.ViewModels"
+             mc:Ignorable="d"
+             x:DataType="vm:TreeViewModel" x:CompileBindings="True">
+    
+    <UserControl.Styles>
+        <Style Selector="Button.main">
+            <Setter Property="Padding" Value="2" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="Width" Value="32"/>
+            <Setter Property="Height" Value="32"/>            
+        </Style>
+    </UserControl.Styles>             
+    
+    
+    <Grid RowDefinitions="*,Auto"> 
+        
+        <TreeDataGrid Grid.Row="0" ShowColumnHeaders="False" Source="{Binding Source}">
+            <TreeDataGrid.Resources>
+                <DataTemplate x:Key="ChannelNameCell" DataType="m:ChannelModel">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16">
+                            <Image.Source>
+                                <Binding Converter="{x:Static vm:TreeViewModel.ChannelIconConverter}" />
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </DataTemplate>
+            </TreeDataGrid.Resources>
+            <TreeDataGrid.Styles>
+                <Style Selector="TreeDataGrid TreeDataGridRow:nth-child(2n)">
+                    <Setter Property="Background"  Value="#20808080"/>
+                </Style>
+            </TreeDataGrid.Styles>        
+        </TreeDataGrid> 
+        
+        <StackPanel Grid.Row="1" Margin="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Button ToolTip.Tip="Add Folder" Classes="main" Content="{SvgImage /Assets/add-folder-svgrepo-com.svg}">
+                <Button.Flyout>
+                    <Flyout Placement="Top">
+                        <Panel Width="250" Height="70">
+                            <StackPanel Orientation="Vertical" Spacing="2">
+                                <TextBox HorizontalAlignment="Stretch" />
+                                <Button HorizontalAlignment="Right" Content="Add" />
+                            </StackPanel>
+                        </Panel>
+                    </Flyout>
+                </Button.Flyout>                        
+            </Button>
+            <Button ToolTip.Tip="Add Feed" Classes="main" Content="{SvgImage /Assets/add-create-new-plus-svgrepo-com.svg}">
+                <Button.Flyout>
+                    <Flyout Placement="Top">
+                        <Panel Width="250" Height="100">
+                            <StackPanel Orientation="Vertical" Spacing="2">
+                                <ComboBox HorizontalAlignment="Stretch" />
+                                <TextBox HorizontalAlignment="Stretch" />
+                                <Button HorizontalAlignment="Right" Content="Add" />
+                            </StackPanel>
+                        </Panel>
+                    </Flyout>
+                </Button.Flyout>                        
+            </Button>
+            <Button ToolTip.Tip="Delete" Classes="main" Content="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}" />
+        </StackPanel>  
+        
+    </Grid> 
+</UserControl>             

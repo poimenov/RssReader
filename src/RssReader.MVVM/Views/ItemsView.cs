@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace RssReader.MVVM.Views;
 
-public partial class ChannelsTreeView : UserControl
+public partial class ItemsView : UserControl
 {
-    public ChannelsTreeView()
+    public ItemsView()
     {
         InitializeComponent();
     }

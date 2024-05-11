@@ -15,15 +15,14 @@ using System.Threading.Tasks;
 
 namespace RssReader.MVVM.ViewModels;
 
-public class ChannelItemsViewModel : ViewModelBase
+public class ItemsViewModel : ViewModelBase
 {
     private readonly IChannelItems _channelItems;
     private readonly IChannelReader _channelReader;
-    public ChannelItemsViewModel(IChannelItems channelItems, IChannelReader channelReader, IReactiveCommand paneCommand)
+    public ItemsViewModel(IChannelItems channelItems, IChannelReader channelReader)
     {
         _channelItems = channelItems;
         _channelReader = channelReader;
-        PaneCommand = paneCommand;
         MarkAsReadCommand = CreateMarkAsReadCommand();
         RefreshCommand = CreateRefreshCommand();
 
@@ -121,7 +120,7 @@ public class ChannelItemsViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _searchText, value);
     }
 
-    public IReactiveCommand PaneCommand { get; }
+    public IReactiveCommand PaneCommand { get; set; }
 
     public IReactiveCommand RefreshCommand { get; }
     private IReactiveCommand CreateRefreshCommand()

@@ -18,17 +18,14 @@
                    OpenPaneLength="300">  
             
             <SplitView.Pane>
-                <Grid RowDefinitions="*,Auto">                    
-                    <vw:ChannelsTreeView  Grid.Row="0" DataContext="{Binding TreeViewModel}" />                    
-                    <vw:TreeEditView Grid.Row="1" DataContext="{Binding TreeEditViewModel}" />
-                </Grid>
+                <vw:TreeView  Grid.Row="0" DataContext="{Binding TreeViewModel}" /> 
             </SplitView.Pane>
             
             <SplitView.Content>
                 
                 <Grid ColumnDefinitions="400,Auto,*" RowDefinitions="*">     
                     
-                    <vw:ChannelItemsView  Grid.Column="0" DataContext="{Binding SelectedItemsViewModel}" /> 
+                    <vw:ItemsView  Grid.Column="0" DataContext="{Binding SelectedItemsViewModel}" /> 
                     
                     <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />  
                     

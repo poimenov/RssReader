@@ -20,12 +20,12 @@ using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
 
-public class ChannelsTreeViewModel : ViewModelBase
+public class TreeViewModel : ViewModelBase
 {
     private static IconConverter? _iconConverter;
     private readonly IChannelService _channelsService;
     private readonly IChannelReader _channelReader;
-    public ChannelsTreeViewModel(IChannelService channelsService, IChannelReader channelReader)
+    public TreeViewModel(IChannelService channelsService, IChannelReader channelReader)
     {
         _channelsService = channelsService;
         _channelReader = channelReader;
@@ -83,7 +83,7 @@ public class ChannelsTreeViewModel : ViewModelBase
 
         channelsForUpdate.ForEach(x => x.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); }));
 
-        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
+        //Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
     }
 
     public List<ChannelModel> GetChannelsForUpdate()
