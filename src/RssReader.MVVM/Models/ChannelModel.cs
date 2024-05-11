@@ -16,6 +16,9 @@ public enum ChannelModelType
 
 public class ChannelModel : ReactiveObject
 {
+    public const string CHANNELMODELTYPE_ALL = "All";
+    public const string CHANNELMODELTYPE_STARRED = "Starred";
+    public const string CHANNELMODELTYPE_READLATER = "Read Later";
     public ChannelModel(ChannelModelType type, string title, int unreadItemsCount)
     {
         Id = (int)type;
@@ -23,6 +26,7 @@ public class ChannelModel : ReactiveObject
         IsChannelsGroup = false;
         ModelType = type;
         _unreadItemsCount = unreadItemsCount;
+        _children = new ObservableCollection<ChannelModel>();
     }
 
     public ChannelModel(int id, string title, IEnumerable<ChannelModel>? children)
@@ -43,6 +47,10 @@ public class ChannelModel : ReactiveObject
                         this.RaisePropertyChanged(nameof(UnreadItemsCount));
                     });
             }
+        }
+        else
+        {
+            _children = new ObservableCollection<ChannelModel>();
         }
     }
     public ChannelModel(int id, string title, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank)

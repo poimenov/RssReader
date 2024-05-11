@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using Avalonia;
@@ -14,7 +15,9 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using DynamicData;
 using DynamicData.Binding;
+using MsBox.Avalonia.Enums;
 using ReactiveUI;
+using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -29,6 +32,9 @@ public class TreeViewModel : ViewModelBase
     {
         _channelsService = channelsService;
         _channelReader = channelReader;
+        AddFolderCommand = CreateAddFolderCommand();
+        AddFeedCommand = CreateAddFeedCommand();
+        DeleteCommand = CreateDeleteCommand();
 
         SourceItems = new ObservableCollectionExtended<ChannelModel>();
 
@@ -79,11 +85,18 @@ public class TreeViewModel : ViewModelBase
         SourceItems.AddRange(items);
         ((HierarchicalTreeDataGridSource<ChannelModel>)Source).Items = Items;
 
+        var folders = new List<string>
+        {
+            string.Empty
+        };
+        folders.AddRange(SourceItems.Where(x => x.IsChannelsGroup == true).Select(x => x.Title));
+        Folders = folders;
+
         var channelsForUpdate = GetChannelsForUpdate();
 
         channelsForUpdate.ForEach(x => x.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); }));
 
-        //Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
+        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
     }
 
     public List<ChannelModel> GetChannelsForUpdate()
@@ -104,6 +117,53 @@ public class TreeViewModel : ViewModelBase
         return channelsForUpdate.Sum(x => x.UnreadItemsCount);
     }
 
+    private bool IsValidUrl(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url))
+        {
+            return false;
+        }
+
+        return Uri.IsWellFormedUriString(url, UriKind.Absolute) &&
+            !GetChannelsForUpdate().Any(x => x.Url.Equals(FeedUrl, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private bool IsValidFolderName(string? folderName)
+    {
+        var reservedNames = new string[] { ChannelModel.CHANNELMODELTYPE_ALL, ChannelModel.CHANNELMODELTYPE_STARRED, ChannelModel.CHANNELMODELTYPE_READLATER };
+
+        return !string.IsNullOrWhiteSpace(folderName) && !reservedNames.Contains(folderName, StringComparer.OrdinalIgnoreCase) &&
+                    Folders!.All(x => !x.Equals(folderName, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private string? _folderName;
+    public string? FolderName
+    {
+        get => _folderName;
+        set => this.RaiseAndSetIfChanged(ref _folderName, value);
+    }
+
+    private string? _feedUrl;
+    public string? FeedUrl
+    {
+        get => _feedUrl;
+        set => this.RaiseAndSetIfChanged(ref _feedUrl, value);
+    }
+
+    private IEnumerable<string>? _folders;
+    public IEnumerable<string>? Folders
+    {
+        get => _folders;
+        set => this.RaiseAndSetIfChanged(ref _folders, value);
+    }
+
+    private string? _selectedFolder;
+    public string? SelectedFolder
+    {
+        get => _selectedFolder;
+        set => this.RaiseAndSetIfChanged(ref _selectedFolder, value);
+    }
+
     #region Items
     public ObservableCollectionExtended<ChannelModel> SourceItems;
     private readonly ReadOnlyObservableCollection<ChannelModel> _items;
@@ -117,6 +177,80 @@ public class TreeViewModel : ViewModelBase
     {
         get => _selectedChannelModel;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelModel, value);
+    }
+
+    public IReactiveCommand AddFolderCommand { get; }
+    private IReactiveCommand CreateAddFolderCommand()
+    {
+        return ReactiveCommand.Create<string, Unit>(
+            (folderName) =>
+            {
+                if (IsValidFolderName(folderName))
+                {
+                    var folder = new ChannelModel(ChannelModelType.Default, folderName, 0)
+                    {
+                        IsChannelsGroup = true
+                    };
+                    _channelsService.AddChannel(folder);
+                    SourceItems.Add(folder);
+                    FolderName = null;
+                }
+
+                return Unit.Default;
+            }, this.WhenAnyValue(x => x.FolderName, (folderName) => IsValidFolderName(folderName)));
+    }
+    public IReactiveCommand AddFeedCommand { get; }
+    private IReactiveCommand CreateAddFeedCommand()
+    {
+        return ReactiveCommand.Create(
+            async () =>
+            {
+                if (IsValidUrl(FeedUrl))
+                {
+                    var feed = new ChannelModel(ChannelModelType.Default, FeedUrl!, 0)
+                    {
+                        IsChannelsGroup = false,
+                        Url = FeedUrl!
+                    };
+
+                    if (!string.IsNullOrEmpty(SelectedFolder))
+                    {
+                        var folder = SourceItems.FirstOrDefault(x => x.Title.Equals(SelectedFolder, StringComparison.OrdinalIgnoreCase));
+                        if (folder != null)
+                        {
+                            feed.Parent = folder;
+                            folder.Children!.Add(feed);
+                        }
+                    }
+
+                    _channelsService.AddChannel(feed);
+                    SourceItems.Add(feed);
+                    FeedUrl = null;
+                    await _channelReader.ReadChannelAsync(feed, default);
+                }
+            }, this.WhenAnyValue(x => x.FeedUrl, (feedUrl) => IsValidUrl(feedUrl)));
+    }
+    public IReactiveCommand DeleteCommand { get; }
+    private IReactiveCommand CreateDeleteCommand()
+    {
+        return ReactiveCommand.Create(
+            async () =>
+            {
+                if (SelectedChannelModel != null &&
+                    SelectedChannelModel.ModelType == ChannelModelType.Default)
+                {
+                    var message = $"Delete {SelectedChannelModel.Title} {(SelectedChannelModel.IsChannelsGroup ? "folder" : "feed")}?";
+                    var dialog = this.GetMessageBox("Delete", message, ButtonEnum.YesNo, Icon.Question);
+                    var result = await dialog.ShowAsync();
+                    if (result == ButtonResult.No)
+                    {
+                        return;
+                    }
+
+                    _channelsService.DeleteChannel(SelectedChannelModel);
+                    SourceItems.Remove(SelectedChannelModel);
+                }
+            }, this.WhenAnyValue(x => x.SelectedChannelModel, x => x != null && x.ModelType == ChannelModelType.Default));
     }
 
     public static IValueConverter ChannelIconConverter

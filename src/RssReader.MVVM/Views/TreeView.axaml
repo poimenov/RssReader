@@ -41,32 +41,37 @@
         </TreeDataGrid> 
         
         <StackPanel Grid.Row="1" Margin="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-            <Button ToolTip.Tip="Add Folder" Classes="main" Content="{SvgImage /Assets/add-folder-svgrepo-com.svg}">
+            <Button ToolTip.Tip="Add Folder" Classes="main"
+                    Content="{SvgImage /Assets/add-folder-svgrepo-com.svg}">
                 <Button.Flyout>
                     <Flyout Placement="Top">
                         <Panel Width="250" Height="70">
                             <StackPanel Orientation="Vertical" Spacing="2">
-                                <TextBox HorizontalAlignment="Stretch" />
-                                <Button HorizontalAlignment="Right" Content="Add" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding FolderName}" />
+                                <Button HorizontalAlignment="Right" Content="Add" 
+                                        Command="{Binding AddFolderCommand}" CommandParameter="{Binding FolderName}" />
                             </StackPanel>
                         </Panel>
                     </Flyout>
                 </Button.Flyout>                        
             </Button>
-            <Button ToolTip.Tip="Add Feed" Classes="main" Content="{SvgImage /Assets/add-create-new-plus-svgrepo-com.svg}">
+            <Button ToolTip.Tip="Add Feed" Classes="main"
+                    Content="{SvgImage /Assets/add-create-new-plus-svgrepo-com.svg}">
                 <Button.Flyout>
                     <Flyout Placement="Top">
                         <Panel Width="250" Height="100">
                             <StackPanel Orientation="Vertical" Spacing="2">
-                                <ComboBox HorizontalAlignment="Stretch" />
-                                <TextBox HorizontalAlignment="Stretch" />
-                                <Button HorizontalAlignment="Right" Content="Add" />
+                                <ComboBox HorizontalAlignment="Stretch" ItemsSource="{Binding Folders}" SelectedItem="{Binding SelectedFolder}" />
+                                <TextBox HorizontalAlignment="Stretch" Text="{Binding FeedUrl}" />
+                                <Button HorizontalAlignment="Right" Content="Add" 
+                                        Command="{Binding AddFeedCommand}" CommandParameter="{Binding FeedUrl}" />
                             </StackPanel>
                         </Panel>
                     </Flyout>
                 </Button.Flyout>                        
             </Button>
-            <Button ToolTip.Tip="Delete" Classes="main" Content="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}" />
+            <Button ToolTip.Tip="Delete" Classes="main" Command="{Binding DeleteCommand}"
+                    Content="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}" />
         </StackPanel>  
         
     </Grid> 

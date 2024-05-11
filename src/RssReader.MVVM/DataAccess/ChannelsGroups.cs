@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 
@@ -35,7 +36,11 @@ public class ChannelsGroups : IChannelsGroups
         {
             if (db.ChannelsGroups.Any(x => x.Id == id))
             {
-                var item = db.ChannelsGroups.First(x => x.Id == id);
+                var item = db.ChannelsGroups
+                    .Include(x => x.Channels)
+                    .ThenInclude(x => x.Items)
+                    .ThenInclude(x => x.ItemCategories)
+                    .First(x => x.Id == id);
                 db.ChannelsGroups.Remove(item);
                 db.SaveChanges();
             }

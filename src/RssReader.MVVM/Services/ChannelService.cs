@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using RssReader.MVVM.DataAccess.Interfaces;
+using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -11,6 +13,7 @@ public class ChannelService : IChannelService
     private readonly IChannelsGroups _channelsGroups;
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
+
     public ChannelService(IChannelsGroups channelsGroups, IChannels channels, IChannelItems channelItems)
     {
         _channelsGroups = channelsGroups;
@@ -19,12 +22,48 @@ public class ChannelService : IChannelService
     }
     public void AddChannel(ChannelModel channel)
     {
-        throw new System.NotImplementedException();
+        if (channel == null || channel.ModelType != ChannelModelType.Default || string.IsNullOrWhiteSpace(channel.Title))
+        {
+            throw new ArgumentNullException(nameof(channel));
+        }
+
+        if (channel.IsChannelsGroup)
+        {
+            var id = _channelsGroups.Create(new ChannelsGroup() { Name = channel.Title });
+            channel.Id = id;
+        }
+        else
+        {
+            var newChannel = new DataAccess.Models.Channel()
+            {
+                Url = channel.Url,
+                Title = channel.Title
+            };
+            if (channel.Parent is not null)
+            {
+                newChannel.ChannelsGroupId = channel.Parent.Id;
+            }
+
+            var id = _channels.Create(newChannel);
+            channel.Id = id;
+        }
     }
 
     public void DeleteChannel(ChannelModel channel)
     {
-        throw new System.NotImplementedException();
+        if (channel == null || channel.ModelType != ChannelModelType.Default)
+        {
+            throw new ArgumentNullException(nameof(channel));
+        }
+
+        if (channel.IsChannelsGroup)
+        {
+            _channelsGroups.Delete(channel.Id);
+        }
+        else
+        {
+            _channels.Delete(channel.Id);
+        }
     }
 
     public ChannelModel GetChannel(ChannelModelType channelModelType)
@@ -32,13 +71,13 @@ public class ChannelService : IChannelService
         switch (channelModelType)
         {
             case ChannelModelType.All:
-                return new ChannelModel(ChannelModelType.All, "All", _channels.GetAllUnreadCount());
+                return new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, _channels.GetAllUnreadCount());
             case ChannelModelType.Starred:
-                return new ChannelModel(ChannelModelType.Starred, "Starred", _channels.GetStarredCount());
+                return new ChannelModel(ChannelModelType.Starred, ChannelModel.CHANNELMODELTYPE_STARRED, _channels.GetStarredCount());
             case ChannelModelType.ReadLater:
-                return new ChannelModel(ChannelModelType.ReadLater, "Read Later", _channels.GetReadLaterCount());
+                return new ChannelModel(ChannelModelType.ReadLater, ChannelModel.CHANNELMODELTYPE_READLATER, _channels.GetReadLaterCount());
             default:
-                return new ChannelModel(ChannelModelType.All, "All", _channels.GetAllUnreadCount());
+                return new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, _channels.GetAllUnreadCount());
         }
     }
 
