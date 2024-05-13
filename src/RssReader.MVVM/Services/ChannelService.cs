@@ -89,11 +89,11 @@ public class ChannelService : IChannelService
     public IEnumerable<ChannelModel> GetChannels()
     {
         var retVal = _channelsGroups.GetAll().Select(group =>
-            new ChannelModel(group.Id, group.Name, _channels.GetByGroupId(group.Id).Select(x =>
-            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
+            new ChannelModel(group.Id, group.Name, this, _channels.GetByGroupId(group.Id).Select(x =>
+            new ChannelModel(x.Id, x.Title, this, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
 
         retVal.AddRange(_channels.GetByGroupId(null).Select(x =>
-            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link,
+            new ChannelModel(x.Id, x.Title, this, x.Description, x.Url, x.ImageUrl, x.Link,
             _channels.GetChannelUnreadCount(x.Id), x.Rank)).ToList());
 
         return retVal;
@@ -101,6 +101,31 @@ public class ChannelService : IChannelService
 
     public void UpdateChannel(ChannelModel channel)
     {
-        throw new System.NotImplementedException();
+        if (channel == null || channel.ModelType != ChannelModelType.Default)
+        {
+            throw new ArgumentNullException(nameof(channel));
+        }
+
+        if (channel.IsChannelsGroup)
+        {
+            var channelGroup = _channelsGroups.Get(channel.Id);
+            if (channelGroup != null)
+            {
+                channelGroup.Name = channel.Title;
+                channelGroup.Rank = channel.Rank;
+                _channelsGroups.Update(channelGroup);
+            }
+        }
+        else
+        {
+            var feed = _channels.Get(channel.Id);
+            if (feed != null)
+            {
+                feed.Title = channel.Title;
+                feed.Rank = channel.Rank;
+                _channels.Update(feed);
+            }
+        }
+
     }
 }

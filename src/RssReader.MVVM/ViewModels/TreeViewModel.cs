@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -51,7 +52,7 @@ public class TreeViewModel : ViewModelBase
                     new TemplateColumn<ChannelModel>(
                         string.Empty,
                         "ChannelNameCell",
-                        null,
+                        "ChannelNameEditCell",
                         GridLength.Star),
                     x => x.Children),
                 new TextColumn<ChannelModel, int>(

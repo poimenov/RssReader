@@ -29,9 +29,21 @@
                                 <Binding Converter="{x:Static vm:TreeViewModel.ChannelIconConverter}" />
                             </Image.Source>
                         </Image>
-                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center"/>
+                        <TextBlock Text="{Binding Title}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </DataTemplate>
+                <DataTemplate x:Key="ChannelNameEditCell" DataType="m:ChannelModel">
+                    <StackPanel Orientation="Horizontal">
+                        <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16">
+                            <Image.Source>
+                                <Binding Converter="{x:Static vm:TreeViewModel.ChannelIconConverter}" />
+                            </Image.Source>
+                        </Image>
+                        <TextBlock Text="{Binding Title}" IsVisible="{Binding IsReadOnly}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                        <TextBox Text="{Binding Title}" IsVisible="{Binding !IsReadOnly}" IsReadOnly="{Binding IsReadOnly}" 
+                                 VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                    </StackPanel>
+                </DataTemplate>                
             </TreeDataGrid.Resources>
             <TreeDataGrid.Styles>
                 <Style Selector="TreeDataGrid TreeDataGridRow:nth-child(2n)">
