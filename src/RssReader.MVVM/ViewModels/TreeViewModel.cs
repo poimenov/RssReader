@@ -85,12 +85,7 @@ public class TreeViewModel : ViewModelBase
         SourceItems.AddRange(items);
         ((HierarchicalTreeDataGridSource<ChannelModel>)Source).Items = Items;
 
-        var folders = new List<string>
-        {
-            string.Empty
-        };
-        folders.AddRange(SourceItems.Where(x => x.IsChannelsGroup == true).Select(x => x.Title));
-        Folders = folders;
+        Folders = GetFolders();
 
         var channelsForUpdate = GetChannelsForUpdate();
 
@@ -108,6 +103,16 @@ public class TreeViewModel : ViewModelBase
                 Channel = channel
             }).Where(x => x != null).Select(x => x.Channel).ToList();
         retVal.AddRange(SourceItems.Where(x => x.IsChannelsGroup == false && x.ModelType == ChannelModelType.Default).ToList());
+        return retVal;
+    }
+
+    private List<string> GetFolders()
+    {
+        var retVal = new List<string>
+        {
+            string.Empty
+        };
+        retVal.AddRange(SourceItems.Where(x => x.IsChannelsGroup == true).Select(x => x.Title));
         return retVal;
     }
 
@@ -136,33 +141,41 @@ public class TreeViewModel : ViewModelBase
                     Folders!.All(x => !x.Equals(folderName, StringComparison.OrdinalIgnoreCase));
     }
 
+    #region FolderName
     private string? _folderName;
     public string? FolderName
     {
         get => _folderName;
         set => this.RaiseAndSetIfChanged(ref _folderName, value);
     }
+    #endregion
 
+    #region FeedUrl
     private string? _feedUrl;
     public string? FeedUrl
     {
         get => _feedUrl;
         set => this.RaiseAndSetIfChanged(ref _feedUrl, value);
     }
+    #endregion
 
+    #region Folders
     private IEnumerable<string>? _folders;
     public IEnumerable<string>? Folders
     {
         get => _folders;
         set => this.RaiseAndSetIfChanged(ref _folders, value);
     }
+    #endregion
 
+    #region SelectedFolder
     private string? _selectedFolder;
     public string? SelectedFolder
     {
         get => _selectedFolder;
         set => this.RaiseAndSetIfChanged(ref _selectedFolder, value);
     }
+    #endregion
 
     #region Items
     public ObservableCollectionExtended<ChannelModel> SourceItems;
@@ -172,13 +185,16 @@ public class TreeViewModel : ViewModelBase
 
     public ITreeDataGridSource<ChannelModel> Source { get; private set; }
 
+    #region SelectedChannelModel
     private ChannelModel? _selectedChannelModel;
     public ChannelModel? SelectedChannelModel
     {
         get => _selectedChannelModel;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelModel, value);
     }
+    #endregion
 
+    #region AddFolderCommand
     public IReactiveCommand AddFolderCommand { get; }
     private IReactiveCommand CreateAddFolderCommand()
     {
@@ -192,25 +208,39 @@ public class TreeViewModel : ViewModelBase
                         IsChannelsGroup = true
                     };
                     _channelsService.AddChannel(folder);
-                    SourceItems.Add(folder);
+                    if (SourceItems.Any(x => x.IsChannelsGroup == true))
+                    {
+                        var maxIndex = SourceItems.Where(x => x.IsChannelsGroup == true).Select(x => SourceItems.IndexOf(x)).Max();
+                        SourceItems.Insert(maxIndex + 1, folder);
+                    }
+                    else
+                    {
+                        var index = SourceItems.IndexOf(SourceItems.First(x => x.ModelType == ChannelModelType.ReadLater));
+                        SourceItems.Insert(index + 1, folder);
+                    }
+
+                    Folders = GetFolders();
                     FolderName = null;
                 }
 
                 return Unit.Default;
             }, this.WhenAnyValue(x => x.FolderName, (folderName) => IsValidFolderName(folderName)));
     }
+    #endregion
+
+    #region AddFeedCommand
     public IReactiveCommand AddFeedCommand { get; }
     private IReactiveCommand CreateAddFeedCommand()
     {
-        return ReactiveCommand.Create(
-            async () =>
+        return ReactiveCommand.CreateFromTask<string, Unit>(
+            async (feedUrl) =>
             {
-                if (IsValidUrl(FeedUrl))
+                if (IsValidUrl(feedUrl))
                 {
-                    var feed = new ChannelModel(ChannelModelType.Default, FeedUrl!, 0)
+                    var feed = new ChannelModel(ChannelModelType.Default, new Uri(feedUrl).Host, 0)
                     {
                         IsChannelsGroup = false,
-                        Url = FeedUrl!
+                        Url = feedUrl!
                     };
 
                     if (!string.IsNullOrEmpty(SelectedFolder))
@@ -220,16 +250,34 @@ public class TreeViewModel : ViewModelBase
                         {
                             feed.Parent = folder;
                             folder.Children!.Add(feed);
+                            feed.WhenAnyValue(x => x.UnreadItemsCount)
+                                .Subscribe(count =>
+                                {
+                                    folder.RaisePropertyChanged(nameof(ChannelModel.UnreadItemsCount));
+                                });
                         }
+                        SelectedFolder = string.Empty;
+                    }
+                    else
+                    {
+                        SourceItems.Add(feed);
                     }
 
                     _channelsService.AddChannel(feed);
-                    SourceItems.Add(feed);
                     FeedUrl = null;
+                    var channelAll = SourceItems.First(x => x.ModelType == ChannelModelType.All);
+                    feed.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); });
                     await _channelReader.ReadChannelAsync(feed, default);
+                    var source = (HierarchicalTreeDataGridSource<ChannelModel>)Source;
+                    source.RowSelection?.Select(source.Items.IndexOf(feed));
                 }
+
+                return Unit.Default;
             }, this.WhenAnyValue(x => x.FeedUrl, (feedUrl) => IsValidUrl(feedUrl)));
     }
+    #endregion
+
+    #region DeleteCommand
     public IReactiveCommand DeleteCommand { get; }
     private IReactiveCommand CreateDeleteCommand()
     {
@@ -248,11 +296,36 @@ public class TreeViewModel : ViewModelBase
                     }
 
                     _channelsService.DeleteChannel(SelectedChannelModel);
-                    SourceItems.Remove(SelectedChannelModel);
+                    if (SelectedChannelModel.IsChannelsGroup)
+                    {
+                        SourceItems.Remove(SelectedChannelModel);
+                        Folders = GetFolders();
+                    }
+                    else
+                    {
+                        var parent = SelectedChannelModel.Parent;
+                        if (parent != null)
+                        {
+                            parent.Children!.Remove(SelectedChannelModel);
+                            parent.RaisePropertyChanged(nameof(ChannelModel.Children));
+                        }
+                        else
+                        {
+                            SourceItems.Remove(SelectedChannelModel);
+                        }
+                    }
+
+                    SelectedFolder = string.Empty;
+                    var source = (HierarchicalTreeDataGridSource<ChannelModel>)Source;
+                    source.RowSelection?.Select(0);
+                    var channelAll = SourceItems.First(x => x.ModelType == ChannelModelType.All);
+                    channelAll.UnreadItemsCount = GetAllUnreadCount();
                 }
             }, this.WhenAnyValue(x => x.SelectedChannelModel, x => x != null && x.ModelType == ChannelModelType.Default));
     }
+    #endregion
 
+    #region ChannelIconConverter
     public static IValueConverter ChannelIconConverter
     {
         get
@@ -350,4 +423,5 @@ public class TreeViewModel : ViewModelBase
             throw new NotImplementedException();
         }
     }
+    #endregion
 }

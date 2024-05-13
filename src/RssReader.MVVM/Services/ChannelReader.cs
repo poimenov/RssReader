@@ -10,7 +10,6 @@ using Avalonia.Threading;
 using CodeHollow.FeedReader;
 using HtmlAgilityPack;
 using log4net;
-using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
@@ -93,10 +92,10 @@ public class ChannelReader : IChannelReader
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    channelModel.Title = channel.Title;
-                    channelModel.Description = channel.Description;
-                    channelModel.Link = channel.Link;
-                    channelModel.ImageUrl = channel.ImageUrl;
+                    channelModel.Title = string.IsNullOrEmpty(feed.Title) ? channel.Title : feed.Title;
+                    channelModel.Description = feed.Description;
+                    channelModel.Link = feed.Link;
+                    channelModel.ImageUrl = feed.ImageUrl;
                     channelModel.Url = channel.Url;
                     channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
                 });
@@ -211,13 +210,23 @@ public class ChannelReader : IChannelReader
                 if (Directory.GetFiles(directioryPath, $"{uri.Host}.*").Length == 0)
                 {
                     var fileName = $"{uri.Host}.ico";
-                    var uriToDownload = new Uri(uri, "/favicon.ico");
-                    var webGet = new HtmlWeb();
+                    var uriToDownload = new Uri(uri, "favicon.ico");
+                    var responseUri = uri;
+                    var webGet = new HtmlWeb
+                    {
+                        CaptureRedirect = true
+                    };
                     var document = await webGet.LoadFromWebAsync(uri.ToString(), cancellationToken);
+                    if (webGet.ResponseUri != null)
+                    {
+                        responseUri = webGet.ResponseUri;
+                        document = await webGet.LoadFromWebAsync(responseUri.ToString(), CancellationToken.None);
+                    }
+
                     var iconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"icon\"]");
                     if (iconLink != null)
                     {
-                        uriToDownload = new Uri(uri, iconLink.Attributes["href"].Value);
+                        uriToDownload = new Uri(responseUri, iconLink.Attributes["href"].Value);
                         fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
                     }
                     else
@@ -225,7 +234,7 @@ public class ChannelReader : IChannelReader
                         var shortcutIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"shortcut icon\"]");
                         if (shortcutIconLink != null)
                         {
-                            uriToDownload = new Uri(uri, shortcutIconLink.Attributes["href"].Value);
+                            uriToDownload = new Uri(responseUri, shortcutIconLink.Attributes["href"].Value);
                             fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
                         }
                         else
@@ -233,7 +242,7 @@ public class ChannelReader : IChannelReader
                             var appleTouchIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"apple-touch-icon\"]");
                             if (appleTouchIconLink != null)
                             {
-                                uriToDownload = new Uri(uri, appleTouchIconLink.Attributes["href"].Value);
+                                uriToDownload = new Uri(responseUri, appleTouchIconLink.Attributes["href"].Value);
                                 fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
                             }
                         }
@@ -244,7 +253,10 @@ public class ChannelReader : IChannelReader
                     {
                         var response = await client.GetAsync(uriToDownload, cancellationToken);
                         var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                        File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
+                        if (data.Length > 0 && GetMimeType(data) != string.Empty)
+                        {
+                            File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
+                        }
                     }
                 }
             }
@@ -254,5 +266,28 @@ public class ChannelReader : IChannelReader
                 _log.Error(ex);
             }
         }
+    }
+
+    private static string GetMimeType(byte[] fileBytes)
+    {
+        byte[] jpegMagic = { 0xFF, 0xD8 };
+        byte[] pngMagic = { 0x89, 0x50, 0x4E, 0x47 };
+        byte[] gifMagic = { 0x47, 0x49, 0x46, 0x38 };
+        byte[] icoMagic = { 0x00, 0x00, 0x01, 0x00 };
+
+        if (fileBytes.Length >= 4)
+        {
+            if (fileBytes[0] == jpegMagic[0] && fileBytes[1] == jpegMagic[1])
+                return "image/jpeg";
+            else if (fileBytes[0] == pngMagic[0] && fileBytes[1] == pngMagic[1])
+                return "image/png";
+            else if (fileBytes[0] == gifMagic[0] && fileBytes[1] == gifMagic[1])
+                return "image/gif";
+            else if (fileBytes[0] == icoMagic[0] && fileBytes[1] == icoMagic[1] &&
+                     fileBytes[2] == icoMagic[2] && fileBytes[3] == icoMagic[3])
+                return "image/x-icon";
+        }
+
+        return string.Empty;
     }
 }

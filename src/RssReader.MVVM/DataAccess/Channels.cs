@@ -40,6 +40,8 @@ public class Channels : IChannels
                     .Include(x => x.Items)
                     .ThenInclude(x => x.ItemCategories)
                     .First(x => x.Id == id);
+                db.ItemCategories.RemoveRange(item.Items.SelectMany(x => x.ItemCategories));
+                db.ChannelItems.RemoveRange(item.Items);
                 db.Channels.Remove(item);
                 db.SaveChanges();
             }
