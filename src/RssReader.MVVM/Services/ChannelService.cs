@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
@@ -89,12 +90,25 @@ public class ChannelService : IChannelService
     public IEnumerable<ChannelModel> GetChannels()
     {
         var retVal = _channelsGroups.GetAll().Select(group =>
-            new ChannelModel(group.Id, group.Name, this, _channels.GetByGroupId(group.Id).Select(x =>
-            new ChannelModel(x.Id, x.Title, this, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
+            new ChannelModel(group.Id, group.Name, _channels.GetByGroupId(group.Id).Select(x =>
+            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
 
         retVal.AddRange(_channels.GetByGroupId(null).Select(x =>
-            new ChannelModel(x.Id, x.Title, this, x.Description, x.Url, x.ImageUrl, x.Link,
+            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link,
             _channels.GetChannelUnreadCount(x.Id), x.Rank)).ToList());
+
+
+        foreach (var item in retVal)
+        {
+            item.WhenAnyValue(x => x.Title).Subscribe((x) => this.UpdateChannel(item));
+            if (item.IsChannelsGroup && item.Children!.Any())
+            {
+                foreach (var child in item.Children!)
+                {
+                    child.WhenAnyValue(x => x.Title).Subscribe((x) => this.UpdateChannel(child));
+                }
+            }
+        }
 
         return retVal;
     }
@@ -123,6 +137,15 @@ public class ChannelService : IChannelService
             {
                 feed.Title = channel.Title;
                 feed.Rank = channel.Rank;
+                if (channel.Parent != null)
+                {
+                    feed.ChannelsGroupId = channel.Parent.Id;
+                }
+                else
+                {
+                    feed.ChannelsGroupId = null;
+                }
+
                 _channels.Update(feed);
             }
         }

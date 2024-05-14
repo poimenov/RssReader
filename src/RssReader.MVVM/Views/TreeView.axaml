@@ -3,6 +3,8 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
+             xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"                
              xmlns:m="using:RssReader.MVVM.Models"
              xmlns:vm="using:RssReader.MVVM.ViewModels"
              mc:Ignorable="d"
@@ -20,7 +22,7 @@
     
     <Grid RowDefinitions="*,Auto"> 
         
-        <TreeDataGrid Grid.Row="0" ShowColumnHeaders="False" Source="{Binding Source}">
+        <TreeDataGrid Grid.Row="0" x:Name="ChannelsTreeDataGrid" ShowColumnHeaders="False" Source="{Binding Source}" AutoDragDropRows="True">
             <TreeDataGrid.Resources>
                 <DataTemplate x:Key="ChannelNameCell" DataType="m:ChannelModel">
                     <StackPanel Orientation="Horizontal">
@@ -40,6 +42,7 @@
                             </Image.Source>
                         </Image>
                         <TextBlock Text="{Binding Title}" IsVisible="{Binding IsReadOnly}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+                        
                         <TextBox Text="{Binding Title}" IsVisible="{Binding !IsReadOnly}" IsReadOnly="{Binding IsReadOnly}" 
                                  VerticalAlignment="Center" HorizontalAlignment="Stretch" />
                     </StackPanel>
@@ -49,7 +52,18 @@
                 <Style Selector="TreeDataGrid TreeDataGridRow:nth-child(2n)">
                     <Setter Property="Background"  Value="#20808080"/>
                 </Style>
-            </TreeDataGrid.Styles>        
+            </TreeDataGrid.Styles>  
+            <i:Interaction.Behaviors>
+                <ia:EventTriggerBehavior EventName="RowDragStarted" SourceObject="ChannelsTreeDataGrid"> 
+                    <ia:InvokeCommandAction Command="{Binding RowDragStartedCommand}" PassEventArgsToCommand="true" />
+                </ia:EventTriggerBehavior>
+                <ia:EventTriggerBehavior EventName="RowDragOver" SourceObject="ChannelsTreeDataGrid"> 
+                    <ia:InvokeCommandAction Command="{Binding RowDragOverCommand}" PassEventArgsToCommand="true" />
+                </ia:EventTriggerBehavior>
+                <ia:EventTriggerBehavior EventName="RowDrop" SourceObject="ChannelsTreeDataGrid"> 
+                    <ia:InvokeCommandAction Command="{Binding RowDropCommand}" PassEventArgsToCommand="true" />
+                </ia:EventTriggerBehavior>                
+            </i:Interaction.Behaviors>                    
         </TreeDataGrid> 
         
         <StackPanel Grid.Row="1" Margin="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
@@ -67,7 +81,7 @@
                     </Flyout>
                 </Button.Flyout>                        
             </Button>
-            <Button ToolTip.Tip="Add Feed" Classes="main"
+            <Button ToolTip.Tip="Add Feed" Classes="main" Command="{Binding GetFoldersCommand}"
                     Content="{SvgImage /Assets/add-create-new-plus-svgrepo-com.svg}">
                 <Button.Flyout>
                     <Flyout Placement="Top">

@@ -15,9 +15,13 @@ public class Channels : IChannels
             if (!db.Channels.Any(x => x.Url.ToLower() == channel.Url.ToLower()))
             {
                 var rank = 1;
-                if (db.Channels.Any())
+                if (channel.ChannelsGroupId != null && db.Channels.Any(x => x.ChannelsGroupId == channel.ChannelsGroupId))
                 {
-                    rank = db.Channels.Max(x => x.Rank) + 1;
+                    rank = db.Channels.Where(x => x.ChannelsGroupId == channel.ChannelsGroupId).Max(x => x.Rank) + 1;
+                }
+                else if (db.Channels.Any(x => x.ChannelsGroupId == null))
+                {
+                    rank = db.Channels.Where(x => x.ChannelsGroupId == null).Max(x => x.Rank) + 1;
                 }
 
                 channel.Rank = rank;

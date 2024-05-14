@@ -21,7 +21,7 @@ public class ChannelModel : ReactiveObject
     public const string CHANNELMODELTYPE_ALL = "All";
     public const string CHANNELMODELTYPE_STARRED = "Starred";
     public const string CHANNELMODELTYPE_READLATER = "Read Later";
-    private readonly IChannelService? _channelService;
+    //private readonly IChannelService? _channelService;
     public ChannelModel(ChannelModelType type, string title, int unreadItemsCount)
     {
         Id = (int)type;
@@ -32,18 +32,18 @@ public class ChannelModel : ReactiveObject
         _children = new ObservableCollection<ChannelModel>();
     }
 
-    public ChannelModel(int id, string title, IChannelService? channelService, IEnumerable<ChannelModel>? children)
+    public ChannelModel(int id, string title, IEnumerable<ChannelModel>? children)
     {
         Id = id;
         Title = title ?? string.Empty;
         IsChannelsGroup = true;
-        _channelService = channelService;
-        if (_channelService is not null)
-        {
-            this.WhenAnyValue(x => x.Title)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Subscribe(title => _channelService.UpdateChannel(this));
-        }
+        //_channelService = channelService;
+        // if (_channelService is not null)
+        // {
+        //     this.WhenAnyValue(x => x.Title)
+        //         .Where(x => !string.IsNullOrWhiteSpace(x))
+        //         .Subscribe(title => _channelService.UpdateChannel(this));
+        // }
 
         ModelType = ChannelModelType.Default;
         if (children != null && children.Any())
@@ -64,7 +64,7 @@ public class ChannelModel : ReactiveObject
             _children = new ObservableCollection<ChannelModel>();
         }
     }
-    public ChannelModel(int id, string title, IChannelService? channelService, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank)
+    public ChannelModel(int id, string title, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank)
     {
         Id = id;
         Title = title;
@@ -74,16 +74,16 @@ public class ChannelModel : ReactiveObject
         Link = link;
         Rank = rank;
         _unreadItemsCount = unreadItemsCount;
-        _channelService = channelService;
+        //_channelService = channelService;
         IsChannelsGroup = false;
         ModelType = ChannelModelType.Default;
 
-        if (_channelService is not null)
-        {
-            this.WhenAnyValue(x => x.Title)
-                .Where(x => !string.IsNullOrWhiteSpace(x))
-                .Subscribe(title => _channelService.UpdateChannel(this));
-        }
+        // if (_channelService is not null)
+        // {
+        //     this.WhenAnyValue(x => x.Title)
+        //         .Where(x => !string.IsNullOrWhiteSpace(x))
+        //         .Subscribe(title => _channelService.UpdateChannel(this));
+        // }
     }
 
     public bool IsReadOnly => ModelType != ChannelModelType.Default;

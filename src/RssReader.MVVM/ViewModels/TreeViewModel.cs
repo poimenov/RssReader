@@ -7,15 +7,16 @@ using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Data.Converters;
+using Avalonia.Input;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using DynamicData;
 using DynamicData.Binding;
+using log4net;
 using MsBox.Avalonia.Enums;
 using ReactiveUI;
 using RssReader.MVVM.Extensions;
@@ -29,13 +30,209 @@ public class TreeViewModel : ViewModelBase
     private static IconConverter? _iconConverter;
     private readonly IChannelService _channelsService;
     private readonly IChannelReader _channelReader;
-    public TreeViewModel(IChannelService channelsService, IChannelReader channelReader)
+    private readonly ILog _log;
+    public TreeViewModel(IChannelService channelsService, IChannelReader channelReader, ILog log)
     {
         _channelsService = channelsService;
         _channelReader = channelReader;
+        _log = log;
         AddFolderCommand = CreateAddFolderCommand();
         AddFeedCommand = CreateAddFeedCommand();
         DeleteCommand = CreateDeleteCommand();
+        GetFoldersCommand = CreateGetFoldersCommand();
+
+        RowDragStartedCommand = ReactiveCommand.Create(
+            (TreeDataGridRowDragStartedEventArgs e) =>
+            {
+                if (e.Models.Count() == 1 && e.Models.First() is ChannelModel m)
+                {
+                    if (m.ModelType == ChannelModelType.Default)
+                    {
+                        Moved = m;
+                    }
+                    else
+                    {
+                        e.AllowedEffects = DragDropEffects.None;
+                    }
+                }
+            });
+
+        RowDragOverCommand = ReactiveCommand.Create(
+            (TreeDataGridRowDragEventArgs e) =>
+            {
+                e.Inner.DragEffects = DragDropEffects.None;
+                if (Moved != null && e.TargetRow.Model is ChannelModel Target && Target.ModelType == ChannelModelType.Default)
+                {
+                    if (Moved.IsChannelsGroup && Target.IsChannelsGroup && e.Position != TreeDataGridRowDropPosition.Inside)
+                    {
+                        e.Inner.DragEffects = DragDropEffects.Move;
+                    }
+                    else if (!Moved.IsChannelsGroup)
+                    {
+                        if (Target.IsChannelsGroup)
+                        {
+                            if (e.Position == TreeDataGridRowDropPosition.Inside)
+                            {
+                                if (Moved.Parent != Target)
+                                {
+                                    e.Inner.DragEffects = DragDropEffects.Move;
+                                }
+                            }
+                            else if (e.Position == TreeDataGridRowDropPosition.After)
+                            {
+                                if (SourceItems!.Last(x => x.IsChannelsGroup == true) == Target)
+                                {
+                                    e.Inner.DragEffects = DragDropEffects.Move;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (e.Position != TreeDataGridRowDropPosition.Inside)
+                            {
+                                e.Inner.DragEffects = DragDropEffects.Move;
+                            }
+                        }
+                    }
+                }
+            });
+
+        RowDropCommand = ReactiveCommand.Create(
+            (TreeDataGridRowDragEventArgs e) =>
+            {
+                if (Moved != null && e.TargetRow.Model is ChannelModel Target && Target.ModelType == ChannelModelType.Default)
+                {
+                    e.Handled = true;
+                    Debug.WriteLine($"Position: {e.Position}");
+                    var sourceIndex = SourceItems!.IndexOf(Moved);
+                    Debug.WriteLine($"Source: {Moved.Title}, Index: {sourceIndex}, Rank: {Moved.Rank}");
+                    var targetIndex = SourceItems!.IndexOf(Target);
+                    Debug.WriteLine($"Target: {Target.Title}, Index: {targetIndex}, Rank: {Target.Rank}");
+
+                    if (Moved.IsChannelsGroup && Target.IsChannelsGroup && e.Position != TreeDataGridRowDropPosition.Inside)
+                    {
+                        //Moved folders
+                        SourceItems.RemoveAt(sourceIndex);
+                        SourceItems.Insert(targetIndex, Moved);
+                        var i = 1;
+                        foreach (var group in SourceItems.Where(x => x.IsChannelsGroup == true))
+                        {
+                            group.Rank = i;
+                            _channelsService.UpdateChannel(group);
+                            i++;
+                        }
+                    }
+                    else if (!Moved.IsChannelsGroup)
+                    {
+                        if (Target.IsChannelsGroup)
+                        {
+                            if (e.Position == TreeDataGridRowDropPosition.Inside)
+                            {
+                                //Moved channel into folder
+                                if (Moved.Parent != Target)
+                                {
+                                    if (Moved.Parent != null)
+                                    {
+                                        Moved.Parent.Children!.Remove(Moved);
+                                    }
+                                    else
+                                    {
+                                        SourceItems.RemoveAt(sourceIndex);
+                                    }
+
+                                    Moved.Parent = Target;
+                                    Target.Children!.Add(Moved);
+                                    var i = 1;
+                                    foreach (var item in Target.Children)
+                                    {
+                                        item.Rank = i;
+                                        _channelsService.UpdateChannel(item);
+                                        i++;
+                                    }
+                                }
+                            }
+                            else if (e.Position == TreeDataGridRowDropPosition.After)
+                            {
+                                //Moved channel after last folder
+                                if (SourceItems!.Last(x => x.IsChannelsGroup == true) == Target)
+                                {
+                                    if (Moved.Parent != null)
+                                    {
+                                        Moved.Parent.Children!.Remove(Moved);
+                                        Moved.Parent = null;
+                                    }
+                                    else
+                                    {
+                                        SourceItems.RemoveAt(sourceIndex);
+                                    }
+
+                                    SourceItems.Add(Moved);
+                                    var i = 1;
+                                    foreach (var item in SourceItems.Where(x => x.IsChannelsGroup == false))
+                                    {
+                                        item.Rank = i;
+                                        _channelsService.UpdateChannel(item);
+                                        i++;
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            if (e.Position != TreeDataGridRowDropPosition.Inside)
+                            {
+                                if (Target.Parent != null)
+                                {
+                                    //Moved channel from one folder to other folder 
+                                    //(before or after target channel)
+                                    targetIndex = Target.Parent.Children!.IndexOf(Target);
+                                    if (Moved.Parent != null)
+                                    {
+                                        Moved.Parent.Children!.Remove(Moved);
+                                    }
+                                    else
+                                    {
+                                        SourceItems.RemoveAt(sourceIndex);
+                                    }
+
+                                    Target.Parent.Children.Insert(targetIndex, Moved);
+                                    Moved.Parent = Target.Parent;
+                                    var i = 1;
+                                    foreach (var item in Target.Parent.Children)
+                                    {
+                                        item.Rank = i;
+                                        _channelsService.UpdateChannel(item);
+                                        i++;
+                                    }
+                                }
+                                else
+                                {
+                                    //Moved channel from one folder to root of tree
+                                    //(before or after target channel)
+                                    if (Moved.Parent != null)
+                                    {
+                                        Moved.Parent.Children!.Remove(Moved);
+                                        Moved.Parent = null;
+                                    }
+                                    else
+                                    {
+                                        SourceItems.RemoveAt(sourceIndex);
+                                    }
+
+                                    SourceItems.Insert(targetIndex, Moved);
+                                    var i = 1;
+                                    foreach (var item in SourceItems.Where(x => x.IsChannelsGroup == false))
+                                    {
+                                        item.Rank = i;
+                                        _channelsService.UpdateChannel(item);
+                                        i++;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            });
 
         SourceItems = new ObservableCollectionExtended<ChannelModel>();
 
@@ -92,7 +289,7 @@ public class TreeViewModel : ViewModelBase
 
         channelsForUpdate.ForEach(x => x.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); }));
 
-        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
+        //Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
     }
 
     public List<ChannelModel> GetChannelsForUpdate()
@@ -141,6 +338,8 @@ public class TreeViewModel : ViewModelBase
         return !string.IsNullOrWhiteSpace(folderName) && !reservedNames.Contains(folderName, StringComparer.OrdinalIgnoreCase) &&
                     Folders!.All(x => !x.Equals(folderName, StringComparison.OrdinalIgnoreCase));
     }
+
+    private ChannelModel? Moved { get; set; }
 
     #region FolderName
     private string? _folderName;
@@ -195,6 +394,19 @@ public class TreeViewModel : ViewModelBase
     }
     #endregion
 
+    #region GetFoldersCommand
+    public IReactiveCommand GetFoldersCommand { get; }
+    private IReactiveCommand CreateGetFoldersCommand()
+    {
+        return ReactiveCommand.Create(
+            () =>
+            {
+                Folders = GetFolders();
+            }
+        );
+    }
+    #endregion
+
     #region AddFolderCommand
     public IReactiveCommand AddFolderCommand { get; }
     private IReactiveCommand CreateAddFolderCommand()
@@ -220,7 +432,9 @@ public class TreeViewModel : ViewModelBase
                         SourceItems.Insert(index + 1, folder);
                     }
 
-                    Folders = GetFolders();
+                    folder.WhenAnyValue(x => x.Title).Subscribe((x) => _channelsService.UpdateChannel(folder));
+
+                    //Folders = GetFolders();
                     FolderName = null;
                 }
 
@@ -238,39 +452,49 @@ public class TreeViewModel : ViewModelBase
             {
                 if (IsValidUrl(feedUrl))
                 {
-                    var feed = new ChannelModel(ChannelModelType.Default, new Uri(feedUrl).Host, 0)
+                    try
                     {
-                        IsChannelsGroup = false,
-                        Url = feedUrl!
-                    };
-
-                    if (!string.IsNullOrEmpty(SelectedFolder))
-                    {
-                        var folder = SourceItems.FirstOrDefault(x => x.Title.Equals(SelectedFolder, StringComparison.OrdinalIgnoreCase));
-                        if (folder != null)
+                        var feed = new ChannelModel(ChannelModelType.Default, new Uri(feedUrl).Host, 0)
                         {
-                            feed.Parent = folder;
-                            folder.Children!.Add(feed);
-                            feed.WhenAnyValue(x => x.UnreadItemsCount)
-                                .Subscribe(count =>
-                                {
-                                    folder.RaisePropertyChanged(nameof(ChannelModel.UnreadItemsCount));
-                                });
-                        }
-                        SelectedFolder = string.Empty;
-                    }
-                    else
-                    {
-                        SourceItems.Add(feed);
-                    }
+                            IsChannelsGroup = false,
+                            Url = feedUrl!
+                        };
 
-                    _channelsService.AddChannel(feed);
-                    FeedUrl = null;
-                    var channelAll = SourceItems.First(x => x.ModelType == ChannelModelType.All);
-                    feed.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); });
-                    await _channelReader.ReadChannelAsync(feed, default);
-                    var source = (HierarchicalTreeDataGridSource<ChannelModel>)Source;
-                    source.RowSelection?.Select(source.Items.IndexOf(feed));
+                        if (!string.IsNullOrEmpty(SelectedFolder))
+                        {
+                            var folder = SourceItems.FirstOrDefault(x => x.Title.Equals(SelectedFolder, StringComparison.OrdinalIgnoreCase));
+                            if (folder != null)
+                            {
+                                feed.Parent = folder;
+                                folder.Children!.Add(feed);
+                                feed.WhenAnyValue(x => x.UnreadItemsCount)
+                                    .Subscribe(count =>
+                                    {
+                                        folder.RaisePropertyChanged(nameof(ChannelModel.UnreadItemsCount));
+                                    });
+                            }
+                            SelectedFolder = string.Empty;
+                        }
+                        else
+                        {
+                            SourceItems.Add(feed);
+                        }
+
+                        _channelsService.AddChannel(feed);
+                        FeedUrl = null;
+                        var channelAll = SourceItems.First(x => x.ModelType == ChannelModelType.All);
+                        feed.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); });
+                        await _channelReader.ReadChannelAsync(feed, default);
+                        var source = (HierarchicalTreeDataGridSource<ChannelModel>)Source;
+                        source.RowSelection?.Select(source.Items.IndexOf(feed));
+                        feed.WhenAnyValue(x => x.Title).Subscribe((x) => _channelsService.UpdateChannel(feed));
+                    }
+                    catch (System.Exception ex)
+                    {
+                        _log.Error(ex);
+                        var dialog = this.GetMessageBox("Exception", ex.Message, ButtonEnum.Ok, Icon.Error);
+                        await dialog.ShowAsync();
+                    }
                 }
 
                 return Unit.Default;
@@ -325,6 +549,10 @@ public class TreeViewModel : ViewModelBase
             }, this.WhenAnyValue(x => x.SelectedChannelModel, x => x != null && x.ModelType == ChannelModelType.Default));
     }
     #endregion
+
+    public IReactiveCommand RowDragStartedCommand { get; }
+    public IReactiveCommand RowDragOverCommand { get; }
+    public IReactiveCommand RowDropCommand { get; }
 
     #region ChannelIconConverter
     public static IValueConverter ChannelIconConverter

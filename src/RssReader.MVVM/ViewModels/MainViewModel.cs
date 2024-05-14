@@ -1,7 +1,9 @@
 using System;
 using System.Reactive.Linq;
+using log4net;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess;
+using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.Services;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -24,9 +26,9 @@ public class MainViewModel : ViewModelBase
         {
             PaneCommand = TriggerPaneCommand
         };
-        ContentViewModel = new ContentViewModel(new ChannelItems());
-        TreeViewModel = new TreeViewModel(_channelService, _channelReader);
-        HeaderViewModel = new HeaderViewModel(new ExportImport(new ChannelsGroups(), new Channels()));
+        ContentViewModel = new ContentViewModel(CurrentApplication.GetRequiredService<IChannelItems>());
+        TreeViewModel = new TreeViewModel(_channelService, _channelReader, CurrentApplication.GetRequiredService<ILog>());
+        HeaderViewModel = new HeaderViewModel(exportImport);
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
         .Subscribe(x =>
