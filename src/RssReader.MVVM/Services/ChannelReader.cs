@@ -6,6 +6,7 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 using Avalonia.Threading;
 using CodeHollow.FeedReader;
 using HtmlAgilityPack;
@@ -19,6 +20,7 @@ namespace RssReader.MVVM.Services;
 
 public class ChannelReader : IChannelReader
 {
+    private const string USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
     private readonly object _locker = new object();
     private readonly ILog _log;
     private readonly IChannels _channels;
@@ -56,7 +58,21 @@ public class ChannelReader : IChannelReader
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Debug.WriteLine($"Start read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
 
-            var feed = await FeedReader.ReadAsync(channel.Url, cancellationToken);
+            Feed? feed = null;
+            try
+            {
+                feed = await GetFeedAsync(channel.Url, cancellationToken);
+            }
+            catch (System.Exception)
+            {
+                var feedLinks = await FeedReader.GetFeedUrlsFromUrlAsync(channel.Url, cancellationToken);
+                if (feedLinks != null && feedLinks.Count() > 0)
+                {
+                    var url = feedLinks.First().Url;
+                    feed = await GetFeedAsync(url, cancellationToken);
+                    channel.Url = url;
+                }
+            }
 
             if (feed != null)
             {
@@ -64,7 +80,7 @@ public class ChannelReader : IChannelReader
                 {
                     if (!string.IsNullOrEmpty(feed.Title) && !string.IsNullOrEmpty(feed.Link))
                     {
-                        channel.Title = feed.Title;
+                        channel.Title = (new Uri(channel.Url).Host == channel.Title) ? feed.Title : channel.Title;
                         channel.Link = feed.Link;
                         channel.Description = feed.Description;
                         channel.ImageUrl = feed.ImageUrl;
@@ -92,21 +108,26 @@ public class ChannelReader : IChannelReader
 
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
-                    channelModel.Title = string.IsNullOrEmpty(feed.Title) ? channel.Title : feed.Title;
-                    channelModel.Description = feed.Description;
-                    channelModel.Link = feed.Link;
-                    channelModel.ImageUrl = feed.ImageUrl;
+                    channelModel.Title = channel.Title;
+                    channelModel.Description = channel.Description;
+                    channelModel.Link = channel.Link;
+                    channelModel.ImageUrl = channel.ImageUrl;
                     channelModel.Url = channel.Url;
                     channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
                 });
                 Debug.WriteLine($"End read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
+            }
+            else
+            {
+                Debug.WriteLine($"Can't load feed from url = {channel.Url}");
+                _log.InfoFormat($"Can't load feed from url = {channel.Url}");
             }
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Url = {channel.Url}");
             Debug.WriteLine(ex);
-            _log.InfoFormat("Url = {0}", channel.Url);
+            _log.InfoFormat($"Url = {channel.Url}");
             _log.Error(ex);
         }
     }
@@ -251,9 +272,11 @@ public class ChannelReader : IChannelReader
                     Debug.WriteLine($"Downloading icon for {uri} : {uriToDownload}");
                     using (var client = new HttpClient())
                     {
+                        client.DefaultRequestHeaders.Clear();
+                        client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
                         var response = await client.GetAsync(uriToDownload, cancellationToken);
                         var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                        if (data.Length > 0 && GetMimeType(data) != string.Empty)
+                        if (data != null && data.Length > 0 && IsImage(data))
                         {
                             File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
                         }
@@ -268,26 +291,47 @@ public class ChannelReader : IChannelReader
         }
     }
 
-    private static string GetMimeType(byte[] fileBytes)
+    private static bool IsImage(byte[] fileBytes)
     {
+        var retVal = false;
         byte[] jpegMagic = { 0xFF, 0xD8 };
         byte[] pngMagic = { 0x89, 0x50, 0x4E, 0x47 };
         byte[] gifMagic = { 0x47, 0x49, 0x46, 0x38 };
         byte[] icoMagic = { 0x00, 0x00, 0x01, 0x00 };
+        byte[] bmpMagic = { 0x42, 0x4D };
+        byte[] webpMagic = { 0x57, 0x45, 0x42, 0x50 };
 
         if (fileBytes.Length >= 4)
         {
             if (fileBytes[0] == jpegMagic[0] && fileBytes[1] == jpegMagic[1])
-                return "image/jpeg";
+                retVal = true;
             else if (fileBytes[0] == pngMagic[0] && fileBytes[1] == pngMagic[1])
-                return "image/png";
+                retVal = true;
             else if (fileBytes[0] == gifMagic[0] && fileBytes[1] == gifMagic[1])
-                return "image/gif";
+                retVal = true;
             else if (fileBytes[0] == icoMagic[0] && fileBytes[1] == icoMagic[1] &&
                      fileBytes[2] == icoMagic[2] && fileBytes[3] == icoMagic[3])
-                return "image/x-icon";
+                retVal = true;
+            if (fileBytes[0] == bmpMagic[0] && fileBytes[1] == bmpMagic[1])
+                retVal = true;
+            else if (fileBytes[0] == webpMagic[0] && fileBytes[1] == webpMagic[1] &&
+                     fileBytes[2] == webpMagic[2] && fileBytes[3] == webpMagic[3])
+                retVal = true;
         }
 
-        return string.Empty;
+        return retVal;
+    }
+
+    private async Task<Feed?> GetFeedAsync(string url, CancellationToken cancellationToken)
+    {
+        string response;
+        using (var client = new HttpClient())
+        {
+            client.DefaultRequestHeaders.Clear();
+            client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+            response = await client.GetStringAsync(url, cancellationToken);
+        }
+        var doc = XDocument.Parse(response);
+        return FeedReader.ReadFromString(doc.ToString());
     }
 }
