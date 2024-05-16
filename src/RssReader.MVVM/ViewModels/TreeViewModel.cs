@@ -273,7 +273,6 @@ public class TreeViewModel : ViewModelBase
                                         folder.RaisePropertyChanged(nameof(ChannelModel.UnreadItemsCount));
                                     });
                             }
-
                         }
                         else
                         {
@@ -571,36 +570,7 @@ public class TreeViewModel : ViewModelBase
         {
             if (_iconConverter is null)
             {
-                Dictionary<string, Bitmap> icons = new Dictionary<string, Bitmap>();
-
-                using (var defaultStream = AssetLoader.Open(new Uri("avares://RssReader.MVVM/Assets/rss-button-orange.32.png")))
-                using (var allStream = AssetLoader.Open(new Uri("avares://RssReader.MVVM/Assets/document-documents-file-page-svgrepo-com.png")))
-                using (var starredStream = AssetLoader.Open(new Uri("avares://RssReader.MVVM/Assets/bookmark-favorite-rating-star-svgrepo-com.png")))
-                using (var readLaterStream = AssetLoader.Open(new Uri("avares://RssReader.MVVM/Assets/flag-location-map-marker-pin-pointer-svgrepo-com.png")))
-                {
-                    icons.Add("default", new Bitmap(defaultStream));
-                    icons.Add(ChannelModelType.All.ToString(), new Bitmap(allStream));
-                    icons.Add(ChannelModelType.Starred.ToString(), new Bitmap(starredStream));
-                    icons.Add(ChannelModelType.ReadLater.ToString(), new Bitmap(readLaterStream));
-                }
-
-                var directioryPath = Path.Combine(AppSettings.AppDataPath, "Icons");
-                var iconsExtensions = new[] { ".ico", ".png", ".jpg", ".jpeg", ".gif", ".bmp", ".webp" };
-                if (Directory.Exists(directioryPath))
-                {
-                    foreach (var fileIcon in Directory.GetFiles(directioryPath))
-                    {
-                        if (iconsExtensions.Contains(Path.GetExtension(fileIcon)))
-                        {
-                            using (var stream = File.OpenRead(fileIcon))
-                            {
-                                icons.Add(Path.GetFileNameWithoutExtension(fileIcon), new Bitmap(stream));
-                            }
-                        }
-                    }
-                }
-
-                _iconConverter = new IconConverter(icons);
+                _iconConverter = new IconConverter();
             }
 
             return _iconConverter;

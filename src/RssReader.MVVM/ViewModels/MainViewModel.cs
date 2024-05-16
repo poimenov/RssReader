@@ -28,7 +28,7 @@ public class MainViewModel : ViewModelBase
         };
         ContentViewModel = new ContentViewModel(CurrentApplication.GetRequiredService<IChannelItems>());
         TreeViewModel = new TreeViewModel(_channelService, _channelReader, CurrentApplication.GetRequiredService<ILog>());
-        HeaderViewModel = new HeaderViewModel(exportImport);
+        HeaderViewModel = new HeaderViewModel(_exportImport);
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
         .Subscribe(x =>

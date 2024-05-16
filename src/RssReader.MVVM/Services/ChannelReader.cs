@@ -48,17 +48,11 @@ public class ChannelReader : IChannelReader
 
         try
         {
-            var siteLink = string.IsNullOrEmpty(channelModel.Link) ? new Uri(channelModel.Url).GetLeftPart(UriPartial.Authority) : channelModel.Link;
-            if (!string.IsNullOrEmpty(siteLink))
-            {
-                Debug.WriteLine($"Start download icon url = {siteLink}");
-                await DownloadIconAsync(new Uri(siteLink), cancellationToken);
-            }
-
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Debug.WriteLine($"Start read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
 
             Feed? feed = null;
+
             try
             {
                 feed = await GetFeedAsync(channel.Url, cancellationToken);
@@ -76,6 +70,22 @@ public class ChannelReader : IChannelReader
 
             if (feed != null)
             {
+                Uri? imageUri = null;
+                if (feed.ImageUrl != null)
+                {
+                    imageUri = new Uri(feed.ImageUrl);
+                }
+
+                Uri? siteUri = null;
+                var siteLink = string.IsNullOrEmpty(channelModel.Link) ? new Uri(channelModel.Url).GetLeftPart(UriPartial.Authority) : channelModel.Link;
+                if (!string.IsNullOrEmpty(siteLink))
+                {
+                    siteUri = new Uri(siteLink);
+                }
+
+                Debug.WriteLine($"Start download icon url = {siteLink}");
+                await DownloadIconAsync(imageUri, siteUri, cancellationToken);
+
                 lock (_locker)
                 {
                     if (!string.IsNullOrEmpty(feed.Title) && !string.IsNullOrEmpty(feed.Link))
@@ -132,93 +142,9 @@ public class ChannelReader : IChannelReader
         }
     }
 
-    public async Task<Channel> ReadChannelAsync(Uri uri)
+    public async Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, CancellationToken cancellationToken)
     {
-        var feed = await FeedReader.ReadAsync(uri.ToString());
-
-        return new Channel
-        {
-            Title = feed.Title,
-            Description = feed.Description,
-            ImageUrl = feed.ImageUrl,
-            Link = feed.Link,
-            Language = feed.Language,
-            Url = uri.ToString(),
-            Items = feed.Items.Select(x => new ChannelItem
-            {
-                Title = x.Title,
-                Description = x.Description,
-                Content = x.Content,
-                Link = x.Link,
-                PublishingDate = x.PublishingDate,
-                ItemId = x.Id
-            }).ToList()
-        };
-    }
-
-    public async Task ReadAllChannelsAsync()
-    {
-        var tasks = _channels.GetAll().Select(async x => await this.ReadAndSaveChannelAsync(x));
-        await Task.WhenAll(tasks);
-    }
-
-    private async Task ReadAndSaveChannelAsync(Channel channel)
-    {
-        if (channel != null)
-        {
-            try
-            {
-                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-                var feed = await FeedReader.ReadAsync(channel.Url);
-
-                if (feed != null)
-                {
-                    lock (_locker)
-                    {
-                        if (!string.IsNullOrEmpty(feed.Title) && !string.IsNullOrEmpty(feed.Link))
-                        {
-                            channel.Title = feed.Title;
-                            channel.Link = feed.Link;
-                            channel.Description = feed.Description;
-                            channel.ImageUrl = feed.ImageUrl;
-                            channel.Language = feed.Language;
-                            channel.LastUpdatedDate = feed.LastUpdatedDate;
-
-                            _channels.Update(channel);
-                        }
-
-                        feed.Items.Select(x => new
-                        {
-                            Item = new ChannelItem
-                            {
-                                ChannelId = channel.Id,
-                                Title = x.Title,
-                                Description = x.Description,
-                                Content = x.Content,
-                                Link = x.Link,
-                                PublishingDate = x.PublishingDate,
-                                ItemId = x.Id
-                            },
-                            Categories = x.Categories.ToArray()
-                        }).ToList().ForEach(x => _channelItems.Create(x.Item, x.Categories));
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Debug.WriteLine($"Url = {channel.Url}");
-                Debug.WriteLine(ex);
-                _log.InfoFormat("Url = {0}", channel.Url);
-                _log.Error(ex);
-            }
-
-            await Task.Delay(TimeSpan.FromMinutes(1));
-        }
-    }
-
-    public async Task DownloadIconAsync(Uri uri, CancellationToken cancellationToken)
-    {
-        if (uri != null)
+        if (imageUri != null || siteUri != null)
         {
             try
             {
@@ -228,57 +154,60 @@ public class ChannelReader : IChannelReader
                     Directory.CreateDirectory(directioryPath);
                 }
 
-                if (Directory.GetFiles(directioryPath, $"{uri.Host}.*").Length == 0)
+                if (siteUri != null && Directory.GetFiles(directioryPath, $"{siteUri.Host}.*").Length == 0)
                 {
-                    var fileName = $"{uri.Host}.ico";
-                    var uriToDownload = new Uri(uri, "favicon.ico");
-                    var responseUri = uri;
-                    var webGet = new HtmlWeb
+                    if (imageUri == null)
                     {
-                        CaptureRedirect = true
-                    };
-                    var document = await webGet.LoadFromWebAsync(uri.ToString(), cancellationToken);
-                    if (webGet.ResponseUri != null)
-                    {
-                        responseUri = webGet.ResponseUri;
-                        document = await webGet.LoadFromWebAsync(responseUri.ToString(), CancellationToken.None);
-                    }
-
-                    var iconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"icon\"]");
-                    if (iconLink != null)
-                    {
-                        uriToDownload = new Uri(responseUri, iconLink.Attributes["href"].Value);
-                        fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
-                    }
-                    else
-                    {
-                        var shortcutIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"shortcut icon\"]");
-                        if (shortcutIconLink != null)
+                        var responseUri = siteUri;
+                        var webGet = new HtmlWeb
                         {
-                            uriToDownload = new Uri(responseUri, shortcutIconLink.Attributes["href"].Value);
-                            fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
+                            CaptureRedirect = true
+                        };
+                        var document = await webGet.LoadFromWebAsync(siteUri.ToString(), cancellationToken);
+                        if (webGet.ResponseUri != null)
+                        {
+                            responseUri = webGet.ResponseUri;
+                            document = await webGet.LoadFromWebAsync(responseUri.ToString(), CancellationToken.None);
+                        }
+
+                        var iconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"icon\"]");
+                        if (iconLink != null)
+                        {
+                            imageUri = new Uri(responseUri, iconLink.Attributes["href"].Value);
                         }
                         else
                         {
-                            var appleTouchIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"apple-touch-icon\"]");
-                            if (appleTouchIconLink != null)
+                            var shortcutIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"shortcut icon\"]");
+                            if (shortcutIconLink != null)
                             {
-                                uriToDownload = new Uri(responseUri, appleTouchIconLink.Attributes["href"].Value);
-                                fileName = $"{uri.Host}{Path.GetExtension(uriToDownload.ToString())}";
+                                imageUri = new Uri(responseUri, shortcutIconLink.Attributes["href"].Value);
+                            }
+                            else
+                            {
+                                var appleTouchIconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"apple-touch-icon\"]");
+                                if (appleTouchIconLink != null)
+                                {
+                                    imageUri = new Uri(responseUri, appleTouchIconLink.Attributes["href"].Value);
+                                }
                             }
                         }
                     }
 
-                    Debug.WriteLine($"Downloading icon for {uri} : {uriToDownload}");
-                    using (var client = new HttpClient())
+                    if (imageUri != null)
                     {
-                        client.DefaultRequestHeaders.Clear();
-                        client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
-                        var response = await client.GetAsync(uriToDownload, cancellationToken);
-                        var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                        if (data != null && data.Length > 0 && IsImage(data))
+                        Debug.WriteLine($"Downloading icon : {imageUri}");
+                        using (var client = new HttpClient())
                         {
-                            File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
+                            client.DefaultRequestHeaders.Clear();
+                            client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+                            var response = await client.GetAsync(imageUri, cancellationToken);
+                            var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
+                            var fileExtension = GetExtension(data);
+                            if (data != null && data.Length > 0 && !string.IsNullOrEmpty(fileExtension))
+                            {
+                                var fileName = $"{siteUri.Host}{fileExtension}";
+                                File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
+                            }
                         }
                     }
                 }
@@ -291,9 +220,9 @@ public class ChannelReader : IChannelReader
         }
     }
 
-    private static bool IsImage(byte[] fileBytes)
+    private static string GetExtension(byte[] fileBytes)
     {
-        var retVal = false;
+        var retVal = string.Empty;
         byte[] jpegMagic = { 0xFF, 0xD8 };
         byte[] pngMagic = { 0x89, 0x50, 0x4E, 0x47 };
         byte[] gifMagic = { 0x47, 0x49, 0x46, 0x38 };
@@ -304,19 +233,19 @@ public class ChannelReader : IChannelReader
         if (fileBytes.Length >= 4)
         {
             if (fileBytes[0] == jpegMagic[0] && fileBytes[1] == jpegMagic[1])
-                retVal = true;
+                retVal = ".jpg";
             else if (fileBytes[0] == pngMagic[0] && fileBytes[1] == pngMagic[1])
-                retVal = true;
+                retVal = ".png";
             else if (fileBytes[0] == gifMagic[0] && fileBytes[1] == gifMagic[1])
-                retVal = true;
+                retVal = ".gif";
             else if (fileBytes[0] == icoMagic[0] && fileBytes[1] == icoMagic[1] &&
                      fileBytes[2] == icoMagic[2] && fileBytes[3] == icoMagic[3])
-                retVal = true;
+                retVal = ".ico";
             if (fileBytes[0] == bmpMagic[0] && fileBytes[1] == bmpMagic[1])
-                retVal = true;
+                retVal = ".bmp";
             else if (fileBytes[0] == webpMagic[0] && fileBytes[1] == webpMagic[1] &&
                      fileBytes[2] == webpMagic[2] && fileBytes[3] == webpMagic[3])
-                retVal = true;
+                retVal = ".webp";
         }
 
         return retVal;
