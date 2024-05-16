@@ -87,6 +87,18 @@ public class ChannelService : IChannelService
         return new ChannelItemModel(_channelItems.Get(channelItemId));
     }
 
+    public ChannelModel? GetChannelModel(int channelId)
+    {
+        var channel = _channels.Get(channelId);
+        if (channel == null)
+        {
+            return null;
+        }
+
+        return new ChannelModel(channel.Id, channel.Title, channel.Description, channel.Url,
+            channel.ImageUrl, channel.Link, _channels.GetChannelUnreadCount(channel.Id), channel.Rank);
+    }
+
     public IEnumerable<ChannelModel> GetChannels()
     {
         var retVal = _channelsGroups.GetAll().Select(group =>

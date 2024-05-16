@@ -40,14 +40,21 @@
                     <TextBlock Text="{Binding SelectedChannelItem.Link}" FontStyle="Italic" />
                 </ToolTip.Tip>
             </Button>
-            <Button Classes="link" Grid.Row="1" Margin="0 5" FontStyle="Italic"
-                    Content="{Binding SelectedChannelItem.ChannelTitle}"
-                    CommandParameter="{Binding SelectedChannelItem.ChannelLink}"
-                    Command="{Binding OpenLinkCommand}">
-                <ToolTip.Tip>
-                    <TextBlock Text="{Binding SelectedChannelItem.ChannelLink}" FontStyle="Italic" />
-                </ToolTip.Tip>
-            </Button>
+            
+            <StackPanel Grid.Row="1" Margin="0 5" Orientation="Horizontal">
+                <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16" Source="{Binding ChannelImageSource}" />
+                <Button Classes="link" Margin="0 5" FontStyle="Italic"
+                        VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                        Content="{Binding SelectedChannelItem.ChannelTitle}"
+                        CommandParameter="{Binding SelectedChannelItem.ChannelLink}"
+                        Command="{Binding OpenLinkCommand}">
+                    <ToolTip.Tip>
+                        <TextBlock Text="{Binding SelectedChannelItem.ChannelLink}" FontStyle="Italic" />
+                    </ToolTip.Tip>
+                </Button>                
+            </StackPanel>  
+            
+            
         </StackPanel>  
         <av:HtmlPanel  Grid.Row="1" Margin="5" Text="{Binding SelectedChannelItem.Content}" />
     </Grid>             

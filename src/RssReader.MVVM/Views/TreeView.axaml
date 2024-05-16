@@ -7,6 +7,7 @@
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"                
              xmlns:m="using:RssReader.MVVM.Models"
              xmlns:vm="using:RssReader.MVVM.ViewModels"
+             xmlns:c="using:RssReader.MVVM.Converters"
              mc:Ignorable="d"
              x:DataType="vm:TreeViewModel" x:CompileBindings="True">
     
@@ -26,21 +27,13 @@
             <TreeDataGrid.Resources>
                 <DataTemplate x:Key="ChannelNameCell" DataType="m:ChannelModel">
                     <StackPanel Orientation="Horizontal">
-                        <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16">
-                            <Image.Source>
-                                <Binding Converter="{x:Static vm:TreeViewModel.ChannelIconConverter}" />
-                            </Image.Source>
-                        </Image>
+                        <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16" Source="{Binding ImageSource}" />
                         <TextBlock Text="{Binding Title}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                     </StackPanel>
                 </DataTemplate>
                 <DataTemplate x:Key="ChannelNameEditCell" DataType="m:ChannelModel">
                     <StackPanel Orientation="Horizontal">
-                        <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16">
-                            <Image.Source>
-                                <Binding Converter="{x:Static vm:TreeViewModel.ChannelIconConverter}" />
-                            </Image.Source>
-                        </Image>
+                        <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16" Source="{Binding ImageSource}" />
                         <TextBlock Text="{Binding Title}" IsVisible="{Binding IsReadOnly}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
                         
                         <TextBox Text="{Binding Title}" IsVisible="{Binding !IsReadOnly}" IsReadOnly="{Binding IsReadOnly}" 

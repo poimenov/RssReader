@@ -14,20 +14,24 @@ public class MainViewModel : ViewModelBase
     private readonly IChannelService _channelService;
     private readonly IExportImport _exportImport;
     private readonly IChannelReader _channelReader;
+    private readonly IChannelItems _channelItems;
+    private readonly ILog _log;
 
-    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader)
+    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader, IChannelItems channelItems, ILog log)
     {
         _channelService = channelService;
         _exportImport = exportImport;
         _channelReader = channelReader;
+        _channelItems = channelItems;
+        _log = log;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
         SelectedItemsViewModel = new ItemsViewModel(new ChannelItems(), _channelReader)
         {
             PaneCommand = TriggerPaneCommand
         };
-        ContentViewModel = new ContentViewModel(CurrentApplication.GetRequiredService<IChannelItems>());
-        TreeViewModel = new TreeViewModel(_channelService, _channelReader, CurrentApplication.GetRequiredService<ILog>());
+        ContentViewModel = new ContentViewModel(_channelService);
+        TreeViewModel = new TreeViewModel(_channelService, _channelReader, _log);
         HeaderViewModel = new HeaderViewModel(_exportImport);
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
@@ -40,7 +44,7 @@ public class MainViewModel : ViewModelBase
             .Where(x => x != null)
             .Subscribe(x =>
             {
-                SelectedItemsViewModel = new ItemsViewModel(new ChannelItems(), _channelReader)
+                SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader)
                 {
                     ChannelModel = x,
                     AllChannels = TreeViewModel.GetChannelsForUpdate(),

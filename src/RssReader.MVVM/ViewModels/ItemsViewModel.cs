@@ -11,6 +11,9 @@ using DynamicData;
 using System.Collections.Generic;
 using RssReader.MVVM.Services.Interfaces;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using RssReader.MVVM.Converters;
+using System.Globalization;
 
 
 namespace RssReader.MVVM.ViewModels;

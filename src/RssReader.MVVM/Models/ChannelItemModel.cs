@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
+using Avalonia.Media.Imaging;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess.Models;
 
@@ -19,6 +20,7 @@ public class ChannelItemModel : ReactiveObject
         }
 
         Id = channelItem.Id;
+        ChannelId = channelItem.ChannelId;
         Title = channelItem.Title;
         Description = HttpUtility.HtmlDecode(channelItem.Description);
         Content = string.IsNullOrEmpty(channelItem.Content) ? channelItem.Description : channelItem.Content;
@@ -40,6 +42,7 @@ public class ChannelItemModel : ReactiveObject
         }
     }
     public long Id { get; set; }
+    public int ChannelId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? ShortDescription => string.IsNullOrWhiteSpace(Description) ? string.Empty : CleanHtml(HttpUtility.HtmlDecode(Description));

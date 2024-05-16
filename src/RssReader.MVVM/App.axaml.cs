@@ -64,7 +64,9 @@ public partial class App : Application
                     DataContext = new MainViewModel(
                         GetRequiredService<IChannelService>(),
                          GetRequiredService<IExportImport>(),
-                         GetRequiredService<IChannelReader>()
+                         GetRequiredService<IChannelReader>(),
+                         GetRequiredService<IChannelItems>(),
+                         GetRequiredService<ILog>()
                      )
                 })
                 //data access 
@@ -119,7 +121,7 @@ public partial class App : Application
     }
     #endregion
 
-    private MainWindow _window;
+    private MainWindow? _window;
     public MainWindow TopWindow
     {
         get

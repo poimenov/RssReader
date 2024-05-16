@@ -1,19 +1,26 @@
 using System;
 using System.Reactive;
+using Avalonia.Media.Imaging;
 using ReactiveUI;
-using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
+using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
 
 public class ContentViewModel : ViewModelBase
 {
-    private readonly IChannelItems _channelItems;
-    public ContentViewModel(IChannelItems channelItems)
+    private readonly IChannelService _channelService;
+    public ContentViewModel(IChannelService channelService)
     {
-        _channelItems = channelItems;
+        _channelService = channelService;
         OpenLinkCommand = CreateOpenLinkCommand();
+        this.WhenAnyValue(x => x.SelectedChannelItem)
+            .WhereNotNull()
+            .Subscribe(channelItem =>
+            {
+                ChannelImageSource = _channelService.GetChannelModel(channelItem.ChannelId)!.ImageSource;
+            });
     }
 
     private ChannelItemModel? _selectedChannelItem;
@@ -21,6 +28,13 @@ public class ContentViewModel : ViewModelBase
     {
         get => _selectedChannelItem;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);
+    }
+
+    private Bitmap? _channelImageSource;
+    public Bitmap? ChannelImageSource
+    {
+        get => _channelImageSource;
+        set => this.RaiseAndSetIfChanged(ref _channelImageSource, value);
     }
 
     public IReactiveCommand OpenLinkCommand { get; }

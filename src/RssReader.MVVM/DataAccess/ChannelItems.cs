@@ -94,7 +94,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ItemCategories.Select(c => c.CategoryId).Contains(categoryId))
+            return db.ChannelItems.Include(x => x.Channel).Where(x => x.ItemCategories.Select(c => c.CategoryId).Contains(categoryId))
                     .OrderByDescending(x => x.Id)
                     .ToList();
         }
@@ -104,7 +104,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.ChannelId == channelId && x.IsRead == false)
+            return db.ChannelItems.Include(x => x.Channel).Where(x => x.ChannelId == channelId && x.IsRead == false)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }
@@ -122,7 +122,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsFavorite == isFavorite)
+            return db.ChannelItems.Include(x => x.Channel).Where(x => x.IsFavorite == isFavorite)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }
@@ -132,7 +132,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.Channel.ChannelsGroupId == groupId && x.IsRead == false)
+            return db.ChannelItems.Include(x => x.Channel).Where(x => x.Channel.ChannelsGroupId == groupId && x.IsRead == false)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }
@@ -142,7 +142,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsRead == isRead)
+            return db.ChannelItems.Include(x => x.Channel).Where(x => x.IsRead == isRead)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }
@@ -152,7 +152,7 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            return db.ChannelItems.Where(x => x.IsReadLater == isReadLater)
+            return db.ChannelItems.Include(x => x.Channel).Where(x => x.IsReadLater == isReadLater)
                     .OrderByDescending(x => x.PublishingDate)
                     .ToList();
         }

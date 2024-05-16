@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
@@ -10,16 +9,12 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
-using Avalonia.Data.Converters;
 using Avalonia.Input;
-using Avalonia.Media.Imaging;
-using Avalonia.Platform;
 using DynamicData;
 using DynamicData.Binding;
 using log4net;
 using MsBox.Avalonia.Enums;
 using ReactiveUI;
-using RssReader.MVVM.Converters;
 using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
@@ -28,7 +23,6 @@ namespace RssReader.MVVM.ViewModels;
 
 public class TreeViewModel : ViewModelBase
 {
-    private static IconConverter? _iconConverter;
     private readonly IChannelService _channelsService;
     private readonly IChannelReader _channelReader;
     private readonly ILog _log;
@@ -283,6 +277,7 @@ public class TreeViewModel : ViewModelBase
                         var channelAll = SourceItems.First(x => x.ModelType == ChannelModelType.All);
                         feed.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); });
                         await _channelReader.ReadChannelAsync(feed, default);
+                        feed.UpdateImageSource();
                         var source = (HierarchicalTreeDataGridSource<ChannelModel>)Source;
                         source.RowSelection?.Select(source.Items.IndexOf(feed));
                         feed.WhenAnyValue(x => x.Title).Subscribe((x) => _channelsService.UpdateChannel(feed));
@@ -560,21 +555,6 @@ public class TreeViewModel : ViewModelBase
                     }
                 }
             });
-    }
-    #endregion
-
-    #region ChannelIconConverter
-    public static IValueConverter ChannelIconConverter
-    {
-        get
-        {
-            if (_iconConverter is null)
-            {
-                _iconConverter = new IconConverter();
-            }
-
-            return _iconConverter;
-        }
     }
     #endregion
 }

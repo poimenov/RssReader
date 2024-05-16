@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
+using Avalonia.Media.Imaging;
 using ReactiveUI;
-using RssReader.MVVM.Services.Interfaces;
+using RssReader.MVVM.Converters;
 
 namespace RssReader.MVVM.Models;
 
@@ -21,7 +23,6 @@ public class ChannelModel : ReactiveObject
     public const string CHANNELMODELTYPE_ALL = "All";
     public const string CHANNELMODELTYPE_STARRED = "Starred";
     public const string CHANNELMODELTYPE_READLATER = "Read Later";
-    //private readonly IChannelService? _channelService;
     public ChannelModel(ChannelModelType type, string title, int unreadItemsCount)
     {
         Id = (int)type;
@@ -30,6 +31,7 @@ public class ChannelModel : ReactiveObject
         ModelType = type;
         _unreadItemsCount = unreadItemsCount;
         _children = new ObservableCollection<ChannelModel>();
+        UpdateImageSource();
     }
 
     public ChannelModel(int id, string title, IEnumerable<ChannelModel>? children)
@@ -37,13 +39,6 @@ public class ChannelModel : ReactiveObject
         Id = id;
         Title = title ?? string.Empty;
         IsChannelsGroup = true;
-        //_channelService = channelService;
-        // if (_channelService is not null)
-        // {
-        //     this.WhenAnyValue(x => x.Title)
-        //         .Where(x => !string.IsNullOrWhiteSpace(x))
-        //         .Subscribe(title => _channelService.UpdateChannel(this));
-        // }
 
         ModelType = ChannelModelType.Default;
         if (children != null && children.Any())
@@ -74,16 +69,21 @@ public class ChannelModel : ReactiveObject
         Link = link;
         Rank = rank;
         _unreadItemsCount = unreadItemsCount;
-        //_channelService = channelService;
         IsChannelsGroup = false;
         ModelType = ChannelModelType.Default;
+        UpdateImageSource();
+    }
 
-        // if (_channelService is not null)
-        // {
-        //     this.WhenAnyValue(x => x.Title)
-        //         .Where(x => !string.IsNullOrWhiteSpace(x))
-        //         .Subscribe(title => _channelService.UpdateChannel(this));
-        // }
+    private Bitmap? _imageSource;
+    public Bitmap? ImageSource
+    {
+        get => _imageSource;
+        set => this.RaiseAndSetIfChanged(ref _imageSource, value);
+    }
+
+    public void UpdateImageSource()
+    {
+        ImageSource = IconConverter.Instance.Convert(this, typeof(ChannelModel), null, CultureInfo.CurrentCulture) as Bitmap;
     }
 
     public bool IsReadOnly => ModelType != ChannelModelType.Default;
@@ -143,6 +143,5 @@ public class ChannelModel : ReactiveObject
     {
         get => IsChannelsGroup ? Children?.Sum(c => c.UnreadItemsCount) ?? 0 : _unreadItemsCount;
         set => this.RaiseAndSetIfChanged(ref _unreadItemsCount, value);
-
     }
 }
