@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Reactive;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
@@ -28,6 +29,13 @@ public class ContentViewModel : ViewModelBase
     {
         get => _selectedChannelItem;
         set => this.RaiseAndSetIfChanged(ref _selectedChannelItem, value);
+    }
+
+    private IEnumerable? _itemsSource;
+    public IEnumerable? ItemsSource
+    {
+        get => _itemsSource;
+        set => this.RaiseAndSetIfChanged(ref _itemsSource, value);
     }
 
     private Bitmap? _channelImageSource;

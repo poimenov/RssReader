@@ -85,6 +85,7 @@ public class TreeViewModel : ViewModelBase
         items.AddRange(_channelsService.GetChannels());
         SourceItems.AddRange(items);
         ((HierarchicalTreeDataGridSource<ChannelModel>)Source).Items = Items;
+        SelectedChannelModel = Source.Items.FirstOrDefault();
 
         var channelsForUpdate = GetChannelsForUpdate();
 

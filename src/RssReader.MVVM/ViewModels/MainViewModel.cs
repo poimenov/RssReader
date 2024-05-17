@@ -26,6 +26,7 @@ public class MainViewModel : ViewModelBase
         _log = log;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
+
         SelectedItemsViewModel = new ItemsViewModel(new ChannelItems(), _channelReader)
         {
             PaneCommand = TriggerPaneCommand
@@ -51,11 +52,25 @@ public class MainViewModel : ViewModelBase
                     PaneCommand = TriggerPaneCommand
                 };
 
+                SelectedItemsViewModel.WhenAnyValue(x => x.Items)
+                .Where(x => x != null)
+                .Subscribe(x =>
+                {
+                    ContentViewModel.ItemsSource = x;
+                });
+
                 SelectedItemsViewModel.WhenAnyValue(x => x.SelectedChannelItem)
                 .Where(x => x != null)
                 .Subscribe(x =>
                 {
-                    ContentViewModel.SelectedChannelItem = _channelService.GetChannelItem(x!.Id);
+                    ContentViewModel.SelectedChannelItem = x;
+                });
+
+                ContentViewModel.WhenAnyValue(x => x.SelectedChannelItem)
+                .Where(x => x != null)
+                .Subscribe(x =>
+                {
+                    SelectedItemsViewModel.SelectedChannelItem = x;
                 });
             });
     }
