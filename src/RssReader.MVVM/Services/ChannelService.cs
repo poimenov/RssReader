@@ -82,11 +82,6 @@ public class ChannelService : IChannelService
         }
     }
 
-    public ChannelItemModel GetChannelItem(long channelItemId)
-    {
-        return new ChannelItemModel(_channelItems.Get(channelItemId));
-    }
-
     public ChannelModel? GetChannelModel(int channelId)
     {
         var channel = _channels.Get(channelId);
@@ -162,5 +157,53 @@ public class ChannelService : IChannelService
             }
         }
 
+    }
+
+    public ChannelItemModel GetChannelItem(long channelItemId)
+    {
+        return new ChannelItemModel(_channelItems.Get(channelItemId));
+    }
+
+    public void UpdateChannelItem(ChannelItemModel channelItem)
+    {
+        var item = _channelItems.Get(channelItem.Id);
+        if (item != null)
+        {
+            if (item.IsRead != channelItem.IsRead)
+            {
+                _channelItems.SetRead(channelItem.Id, channelItem.IsRead);
+            }
+
+            if (item.IsFavorite != channelItem.IsFavorite)
+            {
+                _channelItems.SetFavorite(channelItem.Id, channelItem.IsFavorite);
+            }
+
+            if (item.IsReadLater != channelItem.IsReadLater)
+            {
+                _channelItems.SetReadLater(channelItem.Id, channelItem.IsReadLater);
+            }
+
+            if (item.IsDeleted != channelItem.IsDeleted)
+            {
+                _channelItems.SetDeleted(channelItem.Id, channelItem.IsDeleted);
+            }
+        }
+
+    }
+
+    public int GetStarredCount()
+    {
+        return _channels.GetStarredCount();
+    }
+
+    public int GetReadLaterCount()
+    {
+        return _channels.GetReadLaterCount();
+    }
+
+    public int GetChannelUnreadCount(int channelId)
+    {
+        return _channels.GetChannelUnreadCount(channelId);
     }
 }

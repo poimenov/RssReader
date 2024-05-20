@@ -11,11 +11,6 @@ using DynamicData;
 using System.Collections.Generic;
 using RssReader.MVVM.Services.Interfaces;
 using System.Threading.Tasks;
-using Avalonia.Media.Imaging;
-using RssReader.MVVM.Converters;
-using System.Globalization;
-using Avalonia.Controls;
-
 
 namespace RssReader.MVVM.ViewModels;
 
@@ -41,32 +36,66 @@ public class ItemsViewModel : ViewModelBase
             .WhereNotNull()
             .Subscribe(channelModel =>
             {
-                IEnumerable<ChannelItem> items;
-                switch (channelModel.ModelType)
-                {
-                    case ChannelModelType.All:
-                        items = _channelItems.GetByRead(false);
-                        break;
-                    case ChannelModelType.Starred:
-                        items = _channelItems.GetByFavorite(true);
-                        break;
-                    case ChannelModelType.ReadLater:
-                        items = _channelItems.GetByReadLater(true);
-                        break;
-                    default:
-                        if (channelModel.IsChannelsGroup)
-                        {
-                            items = _channelItems.GetByGroupId(channelModel.Id);
-                        }
-                        else
-                        {
-                            items = _channelItems.GetByChannelId(channelModel.Id);
-                        }
-                        break;
-                }
+                LoadItems();
+                // IEnumerable<ChannelItem> items;
+                // switch (channelModel.ModelType)
+                // {
+                //     case ChannelModelType.All:
+                //         items = _channelItems.GetByRead(false);
+                //         break;
+                //     case ChannelModelType.Starred:
+                //         items = _channelItems.GetByFavorite(true);
+                //         break;
+                //     case ChannelModelType.ReadLater:
+                //         items = _channelItems.GetByReadLater(true);
+                //         break;
+                //     default:
+                //         if (channelModel.IsChannelsGroup)
+                //         {
+                //             items = _channelItems.GetByGroupId(channelModel.Id);
+                //         }
+                //         else
+                //         {
+                //             items = _channelItems.GetByChannelId(channelModel.Id);
+                //         }
+                //         break;
+                // }
 
-                SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+                // SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
             });
+    }
+
+    public void LoadItems()
+    {
+        if (ChannelModel is not null)
+        {
+            IEnumerable<ChannelItem> items;
+            switch (ChannelModel.ModelType)
+            {
+                case ChannelModelType.All:
+                    items = _channelItems.GetByRead(false);
+                    break;
+                case ChannelModelType.Starred:
+                    items = _channelItems.GetByFavorite(true);
+                    break;
+                case ChannelModelType.ReadLater:
+                    items = _channelItems.GetByReadLater(true);
+                    break;
+                default:
+                    if (ChannelModel.IsChannelsGroup)
+                    {
+                        items = _channelItems.GetByGroupId(ChannelModel.Id);
+                    }
+                    else
+                    {
+                        items = _channelItems.GetByChannelId(ChannelModel.Id);
+                    }
+                    break;
+            }
+
+            SourceItems.Clear();
+            SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+        }
     }
 
     private IObservable<Func<ChannelItemModel, bool>> Filter =>
@@ -124,7 +153,7 @@ public class ItemsViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _searchText, value);
     }
 
-    public IReactiveCommand PaneCommand { get; set; }
+    public IReactiveCommand? PaneCommand { get; set; }
 
     public IReactiveCommand RefreshCommand { get; }
     private IReactiveCommand CreateRefreshCommand()

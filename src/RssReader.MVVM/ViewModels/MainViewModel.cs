@@ -1,10 +1,10 @@
 using System;
+using System.Linq;
 using System.Reactive.Linq;
 using log4net;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess;
 using RssReader.MVVM.DataAccess.Interfaces;
-using RssReader.MVVM.Services;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
@@ -73,6 +73,47 @@ public class MainViewModel : ViewModelBase
                     SelectedItemsViewModel.SelectedChannelItem = x;
                 });
             });
+
+        ContentViewModel.WhenAnyValue(x => x.UnreadItemsCountChanged)
+        .Subscribe(x =>
+        {
+            if (ContentViewModel.SelectedChannelModel != null)
+            {
+                var targetChannel = TreeViewModel.GetChannelsForUpdate().FirstOrDefault(c => c.Id == ContentViewModel.SelectedChannelModel.Id);
+                if (targetChannel != null)
+                {
+                    targetChannel.UnreadItemsCount = ContentViewModel.SelectedChannelModel.UnreadItemsCount;
+                }
+            }
+        });
+        ContentViewModel.WhenAnyValue(x => x.StarredCount)
+        .Subscribe(x =>
+        {
+            var targetChannel = TreeViewModel.Items.FirstOrDefault(x => x.ModelType == Models.ChannelModelType.Starred);
+            if (targetChannel != null)
+            {
+                targetChannel.UnreadItemsCount = x;
+            }
+
+            if (TreeViewModel.SelectedChannelModel == targetChannel)
+            {
+                SelectedItemsViewModel.LoadItems();
+            }
+        });
+        ContentViewModel.WhenAnyValue(x => x.ReadLaterCount)
+        .Subscribe(x =>
+        {
+            var targetChannel = TreeViewModel.Items.FirstOrDefault(x => x.ModelType == Models.ChannelModelType.ReadLater);
+            if (targetChannel != null)
+            {
+                targetChannel.UnreadItemsCount = x;
+            }
+
+            if (TreeViewModel.SelectedChannelModel == targetChannel)
+            {
+                SelectedItemsViewModel.LoadItems();
+            }
+        });
     }
 
     private bool _isPaneOpen;

@@ -7,6 +7,7 @@
              xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
              xmlns:ia="clr-namespace:Avalonia.Xaml.Interactions.Core;assembly=Avalonia.Xaml.Interactions"               
              xmlns:vm="using:RssReader.MVVM.ViewModels"
+             xmlns:vw="using:RssReader.MVVM.Views"
              xmlns:m="using:RssReader.MVVM.Models"
              mc:Ignorable="d"
              x:DataType="vm:ContentViewModel" x:CompileBindings="True">
@@ -51,22 +52,25 @@
                 </ToolTip.Tip>
             </Button>
             
-            <StackPanel Grid.Row="1" Margin="0 5" Orientation="Horizontal">
-                <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16" Source="{Binding ChannelImageSource}" />
-                <Button Classes="link" Margin="0 5" FontStyle="Italic"
-                        VerticalAlignment="Center" HorizontalAlignment="Stretch"
-                        Content="{Binding SelectedChannelItem.ChannelTitle}"
-                        CommandParameter="{Binding SelectedChannelItem.ChannelLink}"
-                        Command="{Binding OpenLinkCommand}">
-                    <ToolTip.Tip>
-                        <TextBlock Text="{Binding SelectedChannelItem.ChannelLink}" FontStyle="Italic" />
-                    </ToolTip.Tip>
-                </Button>                
-            </StackPanel>              
+            <Panel>
+                <StackPanel Margin="0 5" Orientation="Horizontal">
+                    <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="24" Height="24" Source="{Binding ChannelImageSource}" />
+                    <Button Classes="link" Margin="0 5" FontStyle="Italic"
+                            VerticalAlignment="Center" HorizontalAlignment="Stretch"
+                            Content="{Binding SelectedChannelItem.ChannelTitle}"
+                            CommandParameter="{Binding SelectedChannelItem.ChannelLink}"
+                            Command="{Binding OpenLinkCommand}">
+                        <ToolTip.Tip>
+                            <TextBlock Text="{Binding SelectedChannelItem.ChannelLink}" FontStyle="Italic" />
+                        </ToolTip.Tip>
+                    </Button>                  
+                </StackPanel> 
+                <vw:ItemButtonsView  HorizontalAlignment="Right" DataContext="{Binding ItemButtonsViewModel}" />
+            </Panel>            
         </StackPanel>  
         
         <Grid Grid.Row="1" ColumnDefinitions="40,*,40">
-            <Button Grid.Column="0" x:Name="PreviousButton" Classes="main"
+            <Button Grid.Column="0" x:Name="PreviousButton" Classes="main" ToolTip.Tip="Previous"
                     Content="{SvgImage /Assets/back-rewind-svgrepo-com.svg}">
                 <i:Interaction.Behaviors>
                     <ia:EventTriggerBehavior EventName="Click" SourceObject="PreviousButton"> 
@@ -89,7 +93,7 @@
                 </Carousel.ItemTemplate>
             </Carousel> 
             
-            <Button Grid.Column="2" x:Name="NextButton" HorizontalAlignment="Right" Classes="main" 
+            <Button Grid.Column="2" x:Name="NextButton" Classes="main" ToolTip.Tip="Next"
                     Content="{SvgImage /Assets/forward-svgrepo-com.svg}">
                 <i:Interaction.Behaviors>
                     <ia:EventTriggerBehavior EventName="Click" SourceObject="NextButton"> 

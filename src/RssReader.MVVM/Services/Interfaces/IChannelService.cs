@@ -8,8 +8,12 @@ public interface IChannelService
     IEnumerable<ChannelModel> GetChannels();
     ChannelModel? GetChannelModel(int channelId);
     ChannelModel GetChannel(ChannelModelType channelModelType);
-    ChannelItemModel GetChannelItem(long channelItemId);
     void AddChannel(ChannelModel channel);
     void UpdateChannel(ChannelModel channel);
     void DeleteChannel(ChannelModel channel);
+    ChannelItemModel GetChannelItem(long channelItemId);
+    void UpdateChannelItem(ChannelItemModel channelItem);
+    int GetStarredCount();
+    int GetReadLaterCount();
+    int GetChannelUnreadCount(int channelId);
 }

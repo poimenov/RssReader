@@ -1,0 +1,70 @@
+<UserControl x:Class="RssReader.MVVM.Views.ItemButtonsView"
+             xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:vm="using:RssReader.MVVM.ViewModels"
+             mc:Ignorable="d"
+             x:DataType="vm:ItemButtonsViewModel" x:CompileBindings="True">
+    
+    <UserControl.Styles>
+        <Style Selector="ToggleButton">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+        </Style> 
+        <Style Selector="ToggleButton Image">            
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>     
+        <Style Selector="ToggleButton Image.isFalse">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="ToggleButton:checked Image.isFalse">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector="ToggleButton Image.isTrue">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector="ToggleButton:checked Image.isTrue">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>    
+    </UserControl.Styles>
+    
+    <StackPanel Margin="5" Orientation="Horizontal">
+        <ToggleButton IsChecked="{Binding SelectedChannelItem.IsRead}" ToolTip.Tip="{Binding IsReadToolTip}"
+                      Command="{Binding ToggleReadCommand}" CommandParameter="{Binding SelectedChannelItem.IsRead}">
+            <Panel>
+                <Image Classes="isFalse" Source="{SvgImage /Assets/accept-check-good-mark-ok-yellow-svgrepo-com.svg}"/>
+                <Image Classes="isTrue" Source="{SvgImage /Assets/accept-check-good-mark-ok-tick-svgrepo-com.svg}"/>
+            </Panel>
+        </ToggleButton>    
+        <ToggleButton IsChecked="{Binding SelectedChannelItem.IsFavorite}" ToolTip.Tip="{Binding IsFavoriteToolTip}"
+                      Command="{Binding ToggleFavoriteCommand}" CommandParameter="{Binding SelectedChannelItem.IsFavorite}">
+            <Panel>
+                <Image Classes="isFalse" Source="{SvgImage /Assets/bookmark-favorite-rating-star-svgrepo-com.svg}"/>
+                <Image Classes="isTrue" Source="{SvgImage /Assets/favorite-no-rating-star-svgrepo-com.svg}"/>
+            </Panel>
+        </ToggleButton>  
+        <ToggleButton IsChecked="{Binding SelectedChannelItem.IsReadLater}" ToolTip.Tip="{Binding IsReadLaterToolTip}"
+                      Command="{Binding ToggleReadLaterCommand}" CommandParameter="{Binding SelectedChannelItem.IsReadLater}">
+            <Panel>
+                <Image Classes="isFalse" Source="{SvgImage /Assets/flag-location-map-marker-pin-pointer-svgrepo-com.svg}"/>
+                <Image Classes="isTrue" Source="{SvgImage /Assets/flag-location-map-yellow-pin-pointer-svgrepo-com.svg}"/>
+            </Panel>
+        </ToggleButton>    
+        <ToggleButton IsChecked="{Binding SelectedChannelItem.IsDeleted}" ToolTip.Tip="{Binding IsDeletedToolTip}"
+                      Command="{Binding ToggleDeleteCommand}" CommandParameter="{Binding SelectedChannelItem.IsDeleted}">
+            <Panel>
+                <Image Classes="isFalse" Source="{SvgImage /Assets/cancel-delete-minus-remove-svgrepo-com.svg}"/>
+                <Image Classes="isTrue" Source="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}"/>                
+            </Panel>
+        </ToggleButton>                       
+    </StackPanel>
+    
+</UserControl>             
