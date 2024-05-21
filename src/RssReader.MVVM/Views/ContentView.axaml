@@ -50,6 +50,11 @@
                 <ToolTip.Tip>
                     <TextBlock Text="{Binding SelectedChannelItem.Link}" FontStyle="Italic" />
                 </ToolTip.Tip>
+                <Button.ContextMenu>
+                    <ContextMenu>
+                        <MenuItem Header="Copy link" Command="{Binding CopyLinkCommand}" CommandParameter="{Binding SelectedChannelItem.Link}" />
+                    </ContextMenu>
+                </Button.ContextMenu>
             </Button>
             
             <Panel>
@@ -63,6 +68,11 @@
                         <ToolTip.Tip>
                             <TextBlock Text="{Binding SelectedChannelItem.ChannelLink}" FontStyle="Italic" />
                         </ToolTip.Tip>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Copy link" Command="{Binding CopyLinkCommand}" CommandParameter="{Binding SelectedChannelItem.ChannelLink}" />
+                            </ContextMenu>
+                        </Button.ContextMenu>                        
                     </Button>                  
                 </StackPanel> 
                 <vw:ItemButtonsView  HorizontalAlignment="Right" DataContext="{Binding ItemButtonsViewModel}" />

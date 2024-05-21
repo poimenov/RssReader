@@ -41,7 +41,7 @@ public class HeaderViewModel : ViewModelBase
             {
                 if (Application.Current is App app)
                 {
-                    var topLevel = TopLevel.GetTopLevel((app.TopWindow));
+                    var topLevel = TopLevel.GetTopLevel(app.TopWindow);
 
                     if (topLevel == null)
                     {

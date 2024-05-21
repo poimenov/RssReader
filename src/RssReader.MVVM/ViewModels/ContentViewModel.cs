@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Reactive;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
 using RssReader.MVVM.Extensions;
@@ -16,6 +18,7 @@ public class ContentViewModel : ViewModelBase
     {
         _channelService = channelService;
         OpenLinkCommand = CreateOpenLinkCommand();
+        CopyLinkCommand = CreateCopyLinkCommand();
         _unreadItemsCountChanged = false;
         _starredCount = _channelService.GetStarredCount();
         _readLaterCount = _channelService.GetReadLaterCount();
@@ -115,6 +118,13 @@ public class ContentViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _channelImageSource, value);
     }
 
+    private ItemButtonsViewModel? _itemButtonsViewModel;
+    public ItemButtonsViewModel? ItemButtonsViewModel
+    {
+        get => _itemButtonsViewModel;
+        set => this.RaiseAndSetIfChanged(ref _itemButtonsViewModel, value);
+    }
+
     public IReactiveCommand OpenLinkCommand { get; }
     private IReactiveCommand CreateOpenLinkCommand()
     {
@@ -127,11 +137,24 @@ public class ContentViewModel : ViewModelBase
         );
     }
 
-    private ItemButtonsViewModel? _itemButtonsViewModel;
-    public ItemButtonsViewModel? ItemButtonsViewModel
+    public IReactiveCommand CopyLinkCommand { get; }
+    private IReactiveCommand CreateCopyLinkCommand()
     {
-        get => _itemButtonsViewModel;
-        set => this.RaiseAndSetIfChanged(ref _itemButtonsViewModel, value);
+        return ReactiveCommand.CreateFromTask<string, Unit>(
+            async (link) =>
+            {
+                if (Application.Current is App app && app.TopWindow is not null && !string.IsNullOrWhiteSpace(link))
+                {
+                    var clipboard = TopLevel.GetTopLevel(app.TopWindow)?.Clipboard;
+                    if (clipboard is not null)
+                    {
+                        await clipboard.SetTextAsync(link);
+                    }
+                }
+
+                return Unit.Default;
+            }
+        );
     }
 
 }
