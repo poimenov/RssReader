@@ -1,13 +1,17 @@
 using System;
 using System.Collections;
+using System.Linq;
 using System.Reactive;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
+using Avalonia.Styling;
+using DynamicData.Binding;
 using ReactiveUI;
 using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
+using TheArtOfDev.HtmlRenderer.Core.Entities;
 
 namespace RssReader.MVVM.ViewModels;
 
@@ -19,6 +23,28 @@ public class ContentViewModel : ViewModelBase
         _channelService = channelService;
         OpenLinkCommand = CreateOpenLinkCommand();
         CopyLinkCommand = CreateCopyLinkCommand();
+        if (Application.Current is App app)
+        {
+            app.WhenPropertyChanged(x => x.ActualThemeVariant)
+            .Subscribe(x =>
+            {
+                var style = Application.Current.Styles.FirstOrDefault(x => x.GetType() == typeof(Avalonia.Themes.Fluent.FluentTheme));
+                if (style != null && x.Value != null)
+                {
+                    var theme = (Avalonia.Themes.Fluent.FluentTheme)style;
+                    var pallete = theme.Palettes[x.Value];
+
+                    Css = @$"body {{ color: {pallete.BaseHigh};}}
+                    div {{ color: {pallete.BaseHigh};}}
+                    span {{ color: {pallete.BaseHigh};}}
+                    table {{ color: {pallete.BaseHigh};}}
+                    b {{ color: {pallete.BaseHigh};}}
+                    h1, h2, h3 {{ color: {pallete.BaseHigh}; }}
+                    p {{ color: {pallete.BaseHigh};}}";
+                }
+            });
+        }
+
         _unreadItemsCountChanged = false;
         _starredCount = _channelService.GetStarredCount();
         _readLaterCount = _channelService.GetReadLaterCount();
@@ -123,6 +149,13 @@ public class ContentViewModel : ViewModelBase
     {
         get => _itemButtonsViewModel;
         set => this.RaiseAndSetIfChanged(ref _itemButtonsViewModel, value);
+    }
+
+    private string? _css;
+    public string? Css
+    {
+        get => _css;
+        set => this.RaiseAndSetIfChanged(ref _css, value);
     }
 
     public IReactiveCommand OpenLinkCommand { get; }

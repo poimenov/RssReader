@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using MsBox.Avalonia.Enums;
 using RssReader.MVVM.DataAccess;
 using RssReader.MVVM.DataAccess.Interfaces;
@@ -86,6 +87,7 @@ public partial class App : Application
             try
             {
                 GetRequiredService<IDatabaseMigrator>().MigrateDatabase();
+                RequestedThemeVariant = Settings.GetTheme();
                 desktop.MainWindow = this.TopWindow;
                 desktop.ShutdownRequested += OnShutdownRequested;
                 _ = _host.StartAsync(_cancellationTokenSource.Token);
@@ -131,6 +133,15 @@ public partial class App : Application
                 _window = GetRequiredService<MainWindow>();
             }
             return _window;
+        }
+    }
+
+    public AppSettings Settings
+    {
+        get
+        {
+            var options = GetRequiredService<IOptions<AppSettings>>();
+            return options.Value;
         }
     }
 

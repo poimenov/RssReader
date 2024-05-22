@@ -42,6 +42,7 @@
                 <ContextMenu x:Name="SettingsMenu">
                     <MenuItem Header="Import opml" Command="{Binding ImportCommand}"/>
                     <MenuItem Header="Export opml" Command="{Binding ExportCommand}"/>
+                    <MenuItem Header="{Binding SwitchThemeText}" Command="{Binding SwitchThemeCommand}"/>
                 </ContextMenu>
             </Button.ContextMenu>  
             <i:Interaction.Behaviors>

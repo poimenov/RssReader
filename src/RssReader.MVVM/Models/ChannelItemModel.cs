@@ -45,7 +45,12 @@ public class ChannelItemModel : ReactiveObject
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? ShortDescription => string.IsNullOrWhiteSpace(Description) ? string.Empty : CleanHtml(HttpUtility.HtmlDecode(Description));
-    public string? Content { get; set; }
+    private string _content;
+    public string? Content
+    {
+        get => $"<body>{_content}</body>";
+        set => _content = value;
+    }
     public string? Link { get; set; }
     public string? PublishingDate { get; set; }
     public string? ChannelTitle { get; set; }

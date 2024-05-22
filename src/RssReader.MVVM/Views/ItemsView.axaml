@@ -17,6 +17,16 @@
             <Setter Property="Width" Value="32"/>
             <Setter Property="Height" Value="32"/>            
         </Style>
+        <Style Selector="TextBlock.IsRead">
+            <Style.Setters>
+                <Setter Property="Foreground" Value="{DynamicResource TextControlPlaceholderForegroundDisabled}" />
+            </Style.Setters>
+        </Style>    
+        <Style Selector="TextBlock.NotRead">
+            <Style.Setters>
+                <Setter Property="Foreground" Value="{DynamicResource TextControlForegroundPointerOver}" />
+            </Style.Setters>
+        </Style>         
     </UserControl.Styles>                           
     
     <Grid RowDefinitions="Auto,Auto,*" HorizontalAlignment="Stretch">
@@ -50,24 +60,14 @@
                     <Border BorderBrush="{DynamicResource SystemBaseLowColor}"
                             BorderThickness="1" CornerRadius="3" Margin="0,0,5,0"> 
                         <StackPanel Margin="5" HorizontalAlignment="Stretch">
-                            <TextBlock Text="{Binding PublishingDate}" FontStyle="Italic" />
-                            <TextBlock Text="{Binding ChannelTitle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontStyle="Italic" />
-                            <TextBlock Text="{Binding Title}" FontWeight="Bold" Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"
-                                       TextWrapping="Wrap" HorizontalAlignment="Stretch">
-                                <TextBlock.Styles>
-                                    <Style Selector="TextBlock.IsRead">
-                                        <Style.Setters>
-                                            <Setter Property="Foreground" Value="DarkSlateGray" />
-                                        </Style.Setters>
-                                    </Style>    
-                                    <Style Selector="TextBlock.NotRead">
-                                        <Style.Setters>
-                                            <Setter Property="Foreground" Value="Black" />
-                                        </Style.Setters>
-                                    </Style>                                                                 
-                                </TextBlock.Styles>
-                            </TextBlock>
-                            <TextBlock Text="{Binding ShortDescription}" TextWrapping="Wrap" HorizontalAlignment="Stretch" />
+                            <TextBlock Text="{Binding PublishingDate}" FontStyle="Italic" 
+                                       Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}" />
+                            <TextBlock Text="{Binding ChannelTitle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontStyle="Italic" 
+                                       Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"/>
+                            <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" HorizontalAlignment="Stretch"
+                                       Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"/>
+                            <TextBlock Text="{Binding ShortDescription}" TextWrapping="Wrap" HorizontalAlignment="Stretch" 
+                                       Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"/>
                         </StackPanel>
                     </Border>                            
                 </DataTemplate>

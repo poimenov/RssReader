@@ -60,7 +60,7 @@
         </TreeDataGrid> 
         
         <StackPanel Grid.Row="1" Margin="5" Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top">
-            <Button ToolTip.Tip="Add Folder" Classes="main"
+            <Button ToolTip.Tip="Add Folder" Classes="main" Command="{Binding GetFoldersCommand}"
                     Content="{SvgImage /Assets/add-folder-svgrepo-com.svg}">
                 <Button.Flyout>
                     <Flyout Placement="Top">

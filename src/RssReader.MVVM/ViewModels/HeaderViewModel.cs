@@ -1,6 +1,7 @@
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform.Storage;
+using Avalonia.Styling;
 using ReactiveUI;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -8,6 +9,8 @@ namespace RssReader.MVVM.ViewModels;
 
 public class HeaderViewModel : ViewModelBase
 {
+    private const string SWITCH_TO_LIGHT = "Switch to light theme";
+    private const string SWITCH_TO_DARK = "Switch to dark theme";
     private readonly IExportImport? _exportImport;
     public HeaderViewModel(IExportImport? exportImport)
     {
@@ -15,6 +18,11 @@ public class HeaderViewModel : ViewModelBase
         _importCount = 0;
         ExportCommand = CreateExportCommand();
         ImportCommand = CreateImportCommand();
+        SwitchThemeCommand = CreateSwitchThemeCommand();
+        if (Application.Current is App app)
+        {
+            SetSwitchThemeText(app.ActualThemeVariant);
+        }
     }
 
     private static FilePickerFileType Opml { get; } = new("opml file")
@@ -28,6 +36,13 @@ public class HeaderViewModel : ViewModelBase
     {
         get => _importCount;
         set => this.RaiseAndSetIfChanged(ref _importCount, value);
+    }
+
+    private string? _switchThemeText;
+    public string? SwitchThemeText
+    {
+        get => _switchThemeText;
+        set => this.RaiseAndSetIfChanged(ref _switchThemeText, value);
     }
 
     #region Commands
@@ -96,5 +111,32 @@ public class HeaderViewModel : ViewModelBase
         );
     }
 
+    public IReactiveCommand SwitchThemeCommand { get; }
+    private IReactiveCommand CreateSwitchThemeCommand()
+    {
+        return ReactiveCommand.Create(
+            () =>
+            {
+                if (Application.Current is App app)
+                {
+                    var theme = (app.ActualThemeVariant == ThemeVariant.Dark) ? ThemeVariant.Light : ThemeVariant.Dark;
+                    app.RequestedThemeVariant = theme;
+                    var settings = app.Settings;
+                    settings.SetTheme(theme);
+                    settings.Save();
+                    SetSwitchThemeText(theme);
+                }
+            }
+        );
+    }
+
     #endregion
+
+    private void SetSwitchThemeText(ThemeVariant themeVariant)
+    {
+        if (Application.Current is App app)
+        {
+            SwitchThemeText = (themeVariant == ThemeVariant.Dark) ? SWITCH_TO_LIGHT : SWITCH_TO_DARK;
+        }
+    }
 }

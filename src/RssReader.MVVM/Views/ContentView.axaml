@@ -40,8 +40,8 @@
         </Style>               
     </UserControl.Styles>              
     
-    <Grid Grid.Column="2" RowDefinitions="Auto,*" HorizontalAlignment="Stretch">
-        <StackPanel Margin="5" Grid.Row="0" Orientation="Vertical">
+    <Grid RowDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch">        
+        <StackPanel Grid.Row="0" Margin="5" Orientation="Vertical">
             <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" FontStyle="Italic" />
             <Button Classes="link" FontSize="20" FontWeight="Bold" 
                     Content="{Binding SelectedChannelItem.Title}" 
@@ -77,11 +77,11 @@
                 </StackPanel> 
                 <vw:ItemButtonsView  HorizontalAlignment="Right" DataContext="{Binding ItemButtonsViewModel}" />
             </Panel>            
-        </StackPanel>  
+        </StackPanel>          
         
         <Grid Grid.Row="1" ColumnDefinitions="40,*,40">
-            <Button Grid.Column="0" x:Name="PreviousButton" Classes="main" ToolTip.Tip="Previous"
-                    Content="{SvgImage /Assets/back-rewind-svgrepo-com.svg}">
+            <Button Grid.Column="0" x:Name="PreviousButton" Classes="main" ToolTip.Tip="Previous (Ctrl+Left)"
+                    Content="{SvgImage /Assets/back-rewind-svgrepo-com.svg}" HotKey="Ctrl+Left">
                 <i:Interaction.Behaviors>
                     <ia:EventTriggerBehavior EventName="Click" SourceObject="PreviousButton"> 
                         <ia:CallMethodAction TargetObject="ContentCarousel" MethodName="Previous" />                  
@@ -98,21 +98,27 @@
                 </Carousel.PageTransition>        
                 <Carousel.ItemTemplate>
                     <DataTemplate DataType="m:ChannelItemModel">
-                        <av:HtmlPanel  Margin="5" Text="{Binding Content}" />
+                        <av:HtmlPanel x:Name="ContentPanel" Margin="5" Text="{Binding Content}" 
+                                      BaseStylesheet="{Binding $parent[Carousel].((vm:ContentViewModel)DataContext).Css}" />
                     </DataTemplate>
                 </Carousel.ItemTemplate>
             </Carousel> 
             
-            <Button Grid.Column="2" x:Name="NextButton" Classes="main" ToolTip.Tip="Next"
-                    Content="{SvgImage /Assets/forward-svgrepo-com.svg}">
+            <Button Grid.Column="2" x:Name="NextButton" Classes="main" ToolTip.Tip="Next (Ctrl+Right)"
+                    Content="{SvgImage /Assets/forward-svgrepo-com.svg}" HotKey="Ctrl+Right">
                 <i:Interaction.Behaviors>
                     <ia:EventTriggerBehavior EventName="Click" SourceObject="NextButton"> 
                         <ia:CallMethodAction TargetObject="ContentCarousel" MethodName="Next" />                  
                     </ia:EventTriggerBehavior>
                 </i:Interaction.Behaviors>                 
-            </Button>
-            
-        </Grid>       
-    </Grid>             
+            </Button>            
+        </Grid>  
+        
+        <Expander Grid.Row="2" Header="Categories" ExpandDirection="Up" HorizontalAlignment="Stretch">
+            <StackPanel>
+                <TextBlock>Expanded content</TextBlock>
+            </StackPanel>
+        </Expander>             
+    </Grid>            
     
 </UserControl>             

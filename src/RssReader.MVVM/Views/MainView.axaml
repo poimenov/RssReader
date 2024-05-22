@@ -27,7 +27,7 @@
                     
                     <vw:ItemsView  Grid.Column="0" DataContext="{Binding SelectedItemsViewModel}" /> 
                     
-                    <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch" />  
+                    <GridSplitter Grid.Column="1" Width="4" Background="#20808080" HorizontalAlignment="Stretch" />  
                     
                     <vw:ContentView  Grid.Column="2" DataContext="{Binding ContentViewModel}" />                    
                     
