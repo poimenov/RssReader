@@ -42,8 +42,8 @@
         </Grid>
         
         <StackPanel Grid.Row="1" Margin="5" Orientation="Horizontal">
-            <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="20" Height="20" Source="{Binding ChannelModel.ImageSource}" />
-            <TextBlock FontSize="18" FontWeight="Bold" Text="{Binding ChannelModel.Title}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
+            <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="20" Height="20" Source="{Binding ImageSource}" />
+            <TextBlock FontSize="18" FontWeight="Bold" Text="{Binding Title}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
         </StackPanel>   
         
         <ListBox Grid.Row="2" Margin="5" ItemsSource="{Binding Items}" Background="Transparent"

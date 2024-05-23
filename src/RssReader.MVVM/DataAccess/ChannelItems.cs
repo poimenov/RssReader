@@ -14,16 +14,16 @@ public class ChannelItems : IChannelItems
     {
         using (var db = new Database())
         {
-            if (!db.ChannelItems.Any(x => x.ItemId.ToLower() == channelItem.ItemId.ToLower()))
+            if (!db.ChannelItems.Any(x => x.ItemId == channelItem.ItemId))
             {
                 using (var transaction = db.Database.BeginTransaction())
                 {
                     db.ChannelItems.Add(channelItem);
                     db.SaveChanges();
 
-                    foreach (var category in categories.Distinct())
+                    foreach (var category in categories.Select(x => x.Trim().ToLower()).Distinct())
                     {
-                        var cat = db.Categories.FirstOrDefault(x => x.Name.ToLower() == category.ToLower());
+                        var cat = db.Categories.FirstOrDefault(x => x.Name == category);
                         if (cat == null)
                         {
                             cat = new Category

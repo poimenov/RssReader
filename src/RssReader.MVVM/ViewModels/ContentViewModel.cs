@@ -1,28 +1,33 @@
 using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media.Imaging;
-using Avalonia.Styling;
 using DynamicData.Binding;
 using ReactiveUI;
+using RssReader.MVVM.DataAccess.Interfaces;
+using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
-using TheArtOfDev.HtmlRenderer.Core.Entities;
 
 namespace RssReader.MVVM.ViewModels;
 
 public class ContentViewModel : ViewModelBase
 {
     private readonly IChannelService _channelService;
-    public ContentViewModel(IChannelService channelService)
+    private readonly ICategories _categories;
+    public ContentViewModel(IChannelService channelService, ICategories categories)
     {
         _channelService = channelService;
+        _categories = categories;
         OpenLinkCommand = CreateOpenLinkCommand();
         CopyLinkCommand = CreateCopyLinkCommand();
+        ViewPostsCommand = CreateViewPostsCommand();
         if (Application.Current is App app)
         {
             app.WhenPropertyChanged(x => x.ActualThemeVariant)
@@ -48,10 +53,25 @@ public class ContentViewModel : ViewModelBase
         _unreadItemsCountChanged = false;
         _starredCount = _channelService.GetStarredCount();
         _readLaterCount = _channelService.GetReadLaterCount();
+        this.WhenAnyValue(x => x.SearchName)
+        .WhereNotNull()
+        .Where(x => x.Length >= 2)
+        .Subscribe(x =>
+        {
+            SearchCategories = _categories.GetByName(x);
+        });
+        this.WhenAnyValue(x => x.SearchCategories)
+        .WhereNotNull()
+        .Subscribe(x =>
+        {
+            SearchNames = SearchCategories!.Select(x => x.Name).ToList();
+        });
+
         this.WhenAnyValue(x => x.SelectedChannelItem)
             .WhereNotNull()
             .Subscribe(channelItem =>
             {
+                ItemCategories = _categories.GetByChannelItem(channelItem.Id);
                 SelectedChannelModel = _channelService.GetChannelModel(channelItem.ChannelId);
                 ChannelImageSource = SelectedChannelModel!.ImageSource;
                 ItemButtonsViewModel = new ItemButtonsViewModel(channelItem);
@@ -158,6 +178,41 @@ public class ContentViewModel : ViewModelBase
         set => this.RaiseAndSetIfChanged(ref _css, value);
     }
 
+    private IEnumerable<Category>? _itemCategories;
+    public IEnumerable<Category>? ItemCategories
+    {
+        get => _itemCategories;
+        set => this.RaiseAndSetIfChanged(ref _itemCategories, value);
+    }
+
+    private Category? _selectedCategory;
+    public Category? SelectedCategory
+    {
+        get => _selectedCategory;
+        set => this.RaiseAndSetIfChanged(ref _selectedCategory, value);
+    }
+
+    private string? _searchName;
+    public string? SearchName
+    {
+        get => _searchName;
+        set => this.RaiseAndSetIfChanged(ref _searchName, value);
+    }
+
+    private IEnumerable<string>? _searchNames;
+    public IEnumerable<string>? SearchNames
+    {
+        get => _searchNames;
+        set => this.RaiseAndSetIfChanged(ref _searchNames, value);
+    }
+
+    private IEnumerable<Category>? _searchCategories;
+    public IEnumerable<Category>? SearchCategories
+    {
+        get => _searchCategories;
+        set => this.RaiseAndSetIfChanged(ref _searchCategories, value);
+    }
+
     public IReactiveCommand OpenLinkCommand { get; }
     private IReactiveCommand CreateOpenLinkCommand()
     {
@@ -190,4 +245,19 @@ public class ContentViewModel : ViewModelBase
         );
     }
 
+    public IReactiveCommand ViewPostsCommand { get; }
+    private IReactiveCommand CreateViewPostsCommand()
+    {
+        return ReactiveCommand.Create<string, Unit>(
+            (categoryName) =>
+            {
+                if (SearchCategories is not null && SearchCategories.Any(x => x.Name == categoryName))
+                {
+                    SelectedCategory = SearchCategories.First(x => x.Name == categoryName);
+                }
+                return Unit.Default;
+            }, this.WhenAnyValue(x => x.SearchCategories, x => x is not null &&
+                !string.IsNullOrEmpty(SearchName) && x.Any(x => x.Name.ToLower() == SearchName.ToLower()))
+        );
+    }
 }

@@ -67,6 +67,7 @@ public partial class App : Application
                          GetRequiredService<IExportImport>(),
                          GetRequiredService<IChannelReader>(),
                          GetRequiredService<IChannelItems>(),
+                         GetRequiredService<ICategories>(),
                          GetRequiredService<ILog>()
                      )
                 })
@@ -75,6 +76,7 @@ public partial class App : Application
                 .AddTransient<IChannelsGroups, ChannelsGroups>()
                 .AddTransient<IChannels, Channels>()
                 .AddTransient<IChannelItems, ChannelItems>()
+                .AddTransient<ICategories, Categories>()
                 //services
                 .AddTransient<IExportImport, ExportImport>()
                 .AddTransient<IChannelReader, ChannelReader>()

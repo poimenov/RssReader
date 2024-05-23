@@ -17,7 +17,7 @@ public class IconConverter : IValueConverter
     private readonly Bitmap _allIcon;
     private readonly Bitmap _starredIcon;
     private readonly Bitmap _readLaterIcon;
-    private const string ASSETS_PATH = "avares://RssReader.MVVM/Assets";
+    public const string ASSETS_PATH = "avares://RssReader.MVVM/Assets";
     private const string DEFAULT = "default";
 
     public static readonly IconConverter Instance = new();

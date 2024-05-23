@@ -11,6 +11,9 @@ using DynamicData;
 using System.Collections.Generic;
 using RssReader.MVVM.Services.Interfaces;
 using System.Threading.Tasks;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
+using RssReader.MVVM.Converters;
 
 namespace RssReader.MVVM.ViewModels;
 
@@ -37,31 +40,6 @@ public class ItemsViewModel : ViewModelBase
             .Subscribe(channelModel =>
             {
                 LoadItems();
-                // IEnumerable<ChannelItem> items;
-                // switch (channelModel.ModelType)
-                // {
-                //     case ChannelModelType.All:
-                //         items = _channelItems.GetByRead(false);
-                //         break;
-                //     case ChannelModelType.Starred:
-                //         items = _channelItems.GetByFavorite(true);
-                //         break;
-                //     case ChannelModelType.ReadLater:
-                //         items = _channelItems.GetByReadLater(true);
-                //         break;
-                //     default:
-                //         if (channelModel.IsChannelsGroup)
-                //         {
-                //             items = _channelItems.GetByGroupId(channelModel.Id);
-                //         }
-                //         else
-                //         {
-                //             items = _channelItems.GetByChannelId(channelModel.Id);
-                //         }
-                //         break;
-                // }
-
-                // SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
             });
     }
 
@@ -69,6 +47,9 @@ public class ItemsViewModel : ViewModelBase
     {
         if (ChannelModel is not null)
         {
+            Title = ChannelModel.Title;
+            ImageSource = ChannelModel.ImageSource;
+
             IEnumerable<ChannelItem> items;
             switch (ChannelModel.ModelType)
             {
@@ -93,6 +74,21 @@ public class ItemsViewModel : ViewModelBase
                     break;
             }
 
+            SourceItems.Clear();
+            SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+        }
+    }
+
+    public void LoadItems(Category category)
+    {
+        if (category is not null && category.Id > 0)
+        {
+            Title = category.Name;
+            using (var defaultStream = AssetLoader.Open(new Uri($"{IconConverter.ASSETS_PATH}/rss-button-orange.32.png")))
+            {
+                ImageSource = new Bitmap(defaultStream);
+            }
+            var items = _channelItems.GetByCategory(category.Id);
             SourceItems.Clear();
             SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
         }
@@ -152,6 +148,21 @@ public class ItemsViewModel : ViewModelBase
         get => _searchText;
         set => this.RaiseAndSetIfChanged(ref _searchText, value);
     }
+
+    private string? _title;
+    public string? Title
+    {
+        get => _title;
+        set => this.RaiseAndSetIfChanged(ref _title, value);
+    }
+
+    private Bitmap? _imageSource;
+    public Bitmap? ImageSource
+    {
+        get => _imageSource;
+        set => this.RaiseAndSetIfChanged(ref _imageSource, value);
+    }
+
 
     public IReactiveCommand? PaneCommand { get; set; }
 

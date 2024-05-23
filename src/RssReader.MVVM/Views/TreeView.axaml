@@ -34,10 +34,9 @@
                 <DataTemplate x:Key="ChannelNameEditCell" DataType="m:ChannelModel">
                     <StackPanel Orientation="Horizontal">
                         <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16" Source="{Binding ImageSource}" />
-                        <TextBlock Text="{Binding Title}" IsVisible="{Binding IsReadOnly}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
-                        
+                        <TextBlock Text="{Binding Title}" IsVisible="{Binding IsReadOnly}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>                        
                         <TextBox Text="{Binding Title}" IsVisible="{Binding !IsReadOnly}" IsReadOnly="{Binding IsReadOnly}" 
-                                 VerticalAlignment="Center" HorizontalAlignment="Stretch" />
+                                 VerticalAlignment="Center" MaxWidth="190" />
                     </StackPanel>
                 </DataTemplate>                
             </TreeDataGrid.Resources>

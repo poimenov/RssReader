@@ -15,14 +15,16 @@ public class MainViewModel : ViewModelBase
     private readonly IExportImport _exportImport;
     private readonly IChannelReader _channelReader;
     private readonly IChannelItems _channelItems;
+    private readonly ICategories _categories;
     private readonly ILog _log;
 
-    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader, IChannelItems channelItems, ILog log)
+    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader, IChannelItems channelItems, ICategories categories, ILog log)
     {
         _channelService = channelService;
         _exportImport = exportImport;
         _channelReader = channelReader;
         _channelItems = channelItems;
+        _categories = categories;
         _log = log;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
@@ -31,7 +33,7 @@ public class MainViewModel : ViewModelBase
         {
             PaneCommand = TriggerPaneCommand
         };
-        ContentViewModel = new ContentViewModel(_channelService);
+        ContentViewModel = new ContentViewModel(_channelService, _categories);
         TreeViewModel = new TreeViewModel(_channelService, _channelReader, _log);
         HeaderViewModel = new HeaderViewModel(_exportImport);
 
@@ -113,6 +115,12 @@ public class MainViewModel : ViewModelBase
             {
                 SelectedItemsViewModel.LoadItems();
             }
+        });
+        ContentViewModel.WhenAnyValue(x => x.SelectedCategory)
+        .WhereNotNull()
+        .Subscribe(x =>
+        {
+            SelectedItemsViewModel.LoadItems(x);
         });
     }
 
