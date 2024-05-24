@@ -1,8 +1,10 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using ReactiveUI;
+using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
@@ -11,6 +13,8 @@ public class HeaderViewModel : ViewModelBase
 {
     private const string SWITCH_TO_LIGHT = "Switch to light theme";
     private const string SWITCH_TO_DARK = "Switch to dark theme";
+    private const string ICON_TO_LIGHT = "ToLightTheme";
+    private const string ICON_TO_DARK = "ToDarkTheme";
     private readonly IExportImport? _exportImport;
     public HeaderViewModel(IExportImport? exportImport)
     {
@@ -19,6 +23,7 @@ public class HeaderViewModel : ViewModelBase
         ExportCommand = CreateExportCommand();
         ImportCommand = CreateImportCommand();
         SwitchThemeCommand = CreateSwitchThemeCommand();
+        OpenSourceCodeCommand = CreateOpenSourceCodeCommand();
         if (Application.Current is App app)
         {
             SetSwitchThemeText(app.ActualThemeVariant);
@@ -43,6 +48,13 @@ public class HeaderViewModel : ViewModelBase
     {
         get => _switchThemeText;
         set => this.RaiseAndSetIfChanged(ref _switchThemeText, value);
+    }
+
+    private Geometry? _switchIcon;
+    public Geometry? SwitchIcon
+    {
+        get => _switchIcon;
+        set => this.RaiseAndSetIfChanged(ref _switchIcon, value);
     }
 
     #region Commands
@@ -130,13 +142,39 @@ public class HeaderViewModel : ViewModelBase
         );
     }
 
+    public IReactiveCommand OpenSourceCodeCommand { get; }
+    private IReactiveCommand CreateOpenSourceCodeCommand()
+    {
+        return ReactiveCommand.Create(
+            () =>
+            {
+                var link = "https://github.com/poimenov/RssReader";
+                link.OpenUrl();
+            }
+        );
+    }
+
     #endregion
 
     private void SetSwitchThemeText(ThemeVariant themeVariant)
     {
-        if (Application.Current is App app)
+        SwitchThemeText = (themeVariant == ThemeVariant.Dark) ? SWITCH_TO_LIGHT : SWITCH_TO_DARK;
+        SwitchIcon = GetIconForName((themeVariant == ThemeVariant.Dark) ? ICON_TO_LIGHT : ICON_TO_DARK);
+
+    }
+
+    private StreamGeometry? GetIconForName(string name)
+    {
+        StreamGeometry? retVal = null;
+        if (CurrentApplication.Styles.TryGetResource(name,
+            CurrentApplication.ActualThemeVariant, out object? icon))
         {
-            SwitchThemeText = (themeVariant == ThemeVariant.Dark) ? SWITCH_TO_LIGHT : SWITCH_TO_DARK;
+            if (icon is StreamGeometry streamGeometry)
+            {
+                return retVal = streamGeometry;
+            }
         }
+
+        return retVal;
     }
 }

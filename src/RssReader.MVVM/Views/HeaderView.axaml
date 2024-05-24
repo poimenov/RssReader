@@ -13,36 +13,53 @@
         <Style Selector="Button.main">
             <Setter Property="Margin" Value="0" />
             <Setter Property="Background" Value="#7F8b44ac" />
-            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
+            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemChromeWhiteColor}" />
         </Style>
         <Style Selector="Button.main:pointerover">
-            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
+            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemChromeWhiteColor}" />
         </Style>  
         <Style Selector="Button.main:pointerover PathIcon">
-            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemAltHighColor}" />
+            <Setter Property="(TextElement.Foreground)" Value="{DynamicResource SystemChromeWhiteColor}" />
         </Style>          
     </UserControl.Styles>              
     
     <Grid Height="45" Background="#8B44AC"
-          ColumnDefinitions="Auto,Auto,*,Auto,Auto" RowDefinitions="*">
+          ColumnDefinitions="Auto,Auto,*,Auto" RowDefinitions="*">
         <Image Grid.Column="0" Margin="6,6,6,6" Height="32" Source="{SvgImage /Assets/logo.svg}" />
         <Label Content="RSS Reader" Grid.Column="1" FontSize="24" 
-               Foreground="White" FontWeight="SemiBold" Margin="6,6,0,6"           
+               Foreground="{DynamicResource SystemChromeWhiteColor}" FontWeight="SemiBold" Margin="6,6,0,6"           
                HorizontalAlignment="Center" VerticalAlignment="Center"/>
-        <Button Grid.Column="3" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <PathIcon Width="16" Height="16" 
-                      Margin="0,0,0,0"
-                      Data="{StaticResource GistIcon}"/>                 
-        </Button>
+        
         <Button Grid.Column="4" x:Name="SettingsButton" Classes="main" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <PathIcon Width="16" Height="16" 
+            <PathIcon Width="24" Height="24" 
                       Margin="0,0,0,0"
                       Data="{StaticResource SettingsIcon}"/> 
             <Button.ContextMenu>
                 <ContextMenu x:Name="SettingsMenu">
-                    <MenuItem Header="Import opml" Command="{Binding ImportCommand}"/>
-                    <MenuItem Header="Export opml" Command="{Binding ExportCommand}"/>
-                    <MenuItem Header="{Binding SwitchThemeText}" Command="{Binding SwitchThemeCommand}"/>
+                    <MenuItem Header="Import opml" Command="{Binding ImportCommand}">
+                        <MenuItem.Icon>
+                            <PathIcon Width="16" Height="16" Margin="0,0,0,0"
+                                      Data="{StaticResource ImportIcon}"/> 
+                        </MenuItem.Icon>                     
+                    </MenuItem>
+                    <MenuItem Header="Export opml" Command="{Binding ExportCommand}">
+                        <MenuItem.Icon>
+                            <PathIcon Width="16" Height="16" Margin="0,0,0,0"
+                                      Data="{StaticResource ExportIcon}"/> 
+                        </MenuItem.Icon>                     
+                    </MenuItem>
+                    <MenuItem Header="{Binding SwitchThemeText}" Command="{Binding SwitchThemeCommand}">
+                        <MenuItem.Icon>
+                            <PathIcon Width="16" Height="16" Margin="0,0,0,0"
+                                      Data="{Binding SwitchIcon}"/> 
+                        </MenuItem.Icon>                     
+                    </MenuItem>
+                    <MenuItem Header="Source code" Command="{Binding OpenSourceCodeCommand}">
+                        <MenuItem.Icon>
+                            <PathIcon Width="16" Height="16" Margin="0,0,0,0"
+                                      Data="{StaticResource GistIcon}"/> 
+                        </MenuItem.Icon>                     
+                    </MenuItem>                    
                 </ContextMenu>
             </Button.ContextMenu>  
             <i:Interaction.Behaviors>

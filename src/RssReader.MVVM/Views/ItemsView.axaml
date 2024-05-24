@@ -42,7 +42,7 @@
         </Grid>
         
         <StackPanel Grid.Row="1" Margin="5" Orientation="Horizontal">
-            <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="20" Height="20" Source="{Binding ImageSource}" />
+            <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="24" Height="24" Source="{Binding ImageSource}" />
             <TextBlock FontSize="18" FontWeight="Bold" Text="{Binding Title}" VerticalAlignment="Center" HorizontalAlignment="Stretch"/>
         </StackPanel>   
         

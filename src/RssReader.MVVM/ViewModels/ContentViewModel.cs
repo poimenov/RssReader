@@ -55,7 +55,6 @@ public class ContentViewModel : ViewModelBase
         _readLaterCount = _channelService.GetReadLaterCount();
         this.WhenAnyValue(x => x.SearchName)
         .WhereNotNull()
-        .Where(x => x.Length >= 2)
         .Subscribe(x =>
         {
             SearchCategories = _categories.GetByName(x);
@@ -64,7 +63,10 @@ public class ContentViewModel : ViewModelBase
         .WhereNotNull()
         .Subscribe(x =>
         {
-            SearchNames = SearchCategories!.Select(x => x.Name).ToList();
+            if (SearchCategories is not null && SearchCategories.Any())
+            {
+                SearchNames = SearchCategories.Select(x => x.Name).ToList();
+            }
         });
 
         this.WhenAnyValue(x => x.SelectedChannelItem)
