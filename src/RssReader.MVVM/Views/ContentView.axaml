@@ -137,7 +137,7 @@
                     </ListBox.ItemTemplate>                
                 </ListBox>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                    <AutoCompleteBox ItemsSource="{Binding SearchNames}" Text="{Binding SearchName, Mode=TwoWay}" Width="200"/>
+                    <AutoCompleteBox ItemsSource="{Binding SearchCategories}" Text="{Binding SearchName, Mode=TwoWay}" Width="200" FilterMode="None"/>
                     <Button Content="View posts by category" Margin="4,0,0,0" Command="{Binding ViewPostsCommand}" CommandParameter="{Binding SearchName}" />
                 </StackPanel>
             </StackPanel>

@@ -20,4 +20,9 @@ public class Category
 
     [Browsable(false)]
     public virtual List<ItemCategory> ItemCategories { get; set; }
+
+    public override string ToString()
+    {
+        return Name;
+    }
 }

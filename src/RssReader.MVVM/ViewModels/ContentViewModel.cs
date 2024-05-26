@@ -59,15 +59,6 @@ public class ContentViewModel : ViewModelBase
         {
             SearchCategories = _categories.GetByName(x);
         });
-        this.WhenAnyValue(x => x.SearchCategories)
-        .WhereNotNull()
-        .Subscribe(x =>
-        {
-            if (SearchCategories is not null && SearchCategories.Any())
-            {
-                SearchNames = SearchCategories.Select(x => x.Name).ToList();
-            }
-        });
 
         this.WhenAnyValue(x => x.SelectedChannelItem)
             .WhereNotNull()
@@ -199,13 +190,6 @@ public class ContentViewModel : ViewModelBase
     {
         get => _searchName;
         set => this.RaiseAndSetIfChanged(ref _searchName, value);
-    }
-
-    private IEnumerable<string>? _searchNames;
-    public IEnumerable<string>? SearchNames
-    {
-        get => _searchNames;
-        set => this.RaiseAndSetIfChanged(ref _searchNames, value);
     }
 
     private IEnumerable<Category>? _searchCategories;
