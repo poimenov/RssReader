@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
@@ -23,21 +22,24 @@ public class ChannelModel : ReactiveObject
     public const string CHANNELMODELTYPE_ALL = "All";
     public const string CHANNELMODELTYPE_STARRED = "Starred";
     public const string CHANNELMODELTYPE_READLATER = "Read Later";
-    public ChannelModel(ChannelModelType type, string title, int unreadItemsCount)
+    private readonly IIconConverter? _iconConverter;
+    public ChannelModel(ChannelModelType type, string title, int unreadItemsCount, IIconConverter iconConverter)
     {
         Id = (int)type;
         Title = title;
         IsChannelsGroup = false;
         ModelType = type;
         _unreadItemsCount = unreadItemsCount;
+        _iconConverter = iconConverter;
         _children = new ObservableCollection<ChannelModel>();
         UpdateImageSource();
     }
 
-    public ChannelModel(int id, string title, IEnumerable<ChannelModel>? children)
+    public ChannelModel(int id, string title, int rank, IEnumerable<ChannelModel>? children)
     {
         Id = id;
         Title = title ?? string.Empty;
+        Rank = rank;
         IsChannelsGroup = true;
 
         ModelType = ChannelModelType.Default;
@@ -59,7 +61,7 @@ public class ChannelModel : ReactiveObject
             _children = new ObservableCollection<ChannelModel>();
         }
     }
-    public ChannelModel(int id, string title, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank)
+    public ChannelModel(int id, string title, string? description, string url, string? imageUrl, string? link, int unreadItemsCount, int rank, IIconConverter iconConverter)
     {
         Id = id;
         Title = title;
@@ -68,6 +70,7 @@ public class ChannelModel : ReactiveObject
         ImageUrl = imageUrl;
         Link = link;
         Rank = rank;
+        _iconConverter = iconConverter;
         _unreadItemsCount = unreadItemsCount;
         IsChannelsGroup = false;
         ModelType = ChannelModelType.Default;
@@ -83,7 +86,10 @@ public class ChannelModel : ReactiveObject
 
     public void UpdateImageSource()
     {
-        ImageSource = IconConverter.Instance.Convert(this, typeof(ChannelModel), null, CultureInfo.CurrentCulture) as Bitmap;
+        if (_iconConverter != null && !IsChannelsGroup)
+        {
+            ImageSource = _iconConverter.GetImageByChannelModel(this);
+        }
     }
 
     public bool IsReadOnly => ModelType != ChannelModelType.Default;

@@ -8,6 +8,7 @@ public interface IChannelService
     IEnumerable<ChannelModel> GetChannels();
     ChannelModel? GetChannelModel(int channelId);
     ChannelModel GetChannel(ChannelModelType channelModelType);
+    ChannelModel CreateNewChannel(string url);
     void AddChannel(ChannelModel channel);
     void UpdateChannel(ChannelModel channel);
     void DeleteChannel(ChannelModel channel);

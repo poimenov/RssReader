@@ -213,10 +213,7 @@ public class TreeViewModel : ViewModelBase
             {
                 if (IsValidFolderName(folderName))
                 {
-                    var folder = new ChannelModel(ChannelModelType.Default, folderName, 0)
-                    {
-                        IsChannelsGroup = true
-                    };
+                    var folder = new ChannelModel(0, folderName, 0, null);
                     _channelsService.AddChannel(folder);
                     if (SourceItems.Any(x => x.IsChannelsGroup == true))
                     {
@@ -249,11 +246,7 @@ public class TreeViewModel : ViewModelBase
                 {
                     try
                     {
-                        var feed = new ChannelModel(ChannelModelType.Default, new Uri(feedUrl).Host, 0)
-                        {
-                            IsChannelsGroup = false,
-                            Url = feedUrl!
-                        };
+                        var feed = _channelsService.CreateNewChannel(feedUrl);
 
                         if (!string.IsNullOrEmpty(SelectedFolder))
                         {

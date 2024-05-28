@@ -13,7 +13,6 @@ using RssReader.MVVM.Services.Interfaces;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using RssReader.MVVM.Converters;
 
 namespace RssReader.MVVM.ViewModels;
 
@@ -84,7 +83,7 @@ public class ItemsViewModel : ViewModelBase
         if (category is not null && category.Id > 0)
         {
             Title = category.Name;
-            using (var defaultStream = AssetLoader.Open(new Uri($"{IconConverter.ASSETS_PATH}/rss-button-orange.32.png")))
+            using (var defaultStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/rss-button-orange.32.png")))
             {
                 ImageSource = new Bitmap(defaultStream);
             }

@@ -3,32 +3,28 @@ using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using Avalonia.Data.Converters;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using RssReader.MVVM.Models;
 
 namespace RssReader.MVVM.Converters;
 
-public class IconConverter : IValueConverter
+public class IconConverter : IIconConverter
 {
     private readonly Dictionary<string, Bitmap> _icons;
     private readonly Bitmap _defaultIcon;
     private readonly Bitmap _allIcon;
     private readonly Bitmap _starredIcon;
     private readonly Bitmap _readLaterIcon;
-    public const string ASSETS_PATH = "avares://RssReader.MVVM/Assets";
     private const string DEFAULT = "default";
-
-    public static readonly IconConverter Instance = new();
 
     public IconConverter()
     {
         _icons = new Dictionary<string, Bitmap>();
-        using (var defaultStream = AssetLoader.Open(new Uri($"{ASSETS_PATH}/rss-button-orange.32.png")))
-        using (var allStream = AssetLoader.Open(new Uri($"{ASSETS_PATH}/document-documents-file-page-svgrepo-com.png")))
-        using (var starredStream = AssetLoader.Open(new Uri($"{ASSETS_PATH}/bookmark-favorite-rating-star-svgrepo-com.png")))
-        using (var readLaterStream = AssetLoader.Open(new Uri($"{ASSETS_PATH}/flag-location-map-marker-pin-pointer-svgrepo-com.png")))
+        using (var defaultStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/rss-button-orange.32.png")))
+        using (var allStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/document-documents-file-page-svgrepo-com.png")))
+        using (var starredStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/bookmark-favorite-rating-star-svgrepo-com.png")))
+        using (var readLaterStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/flag-location-map-marker-pin-pointer-svgrepo-com.png")))
         {
             _icons.Add(DEFAULT, new Bitmap(defaultStream));
             _icons.Add(ChannelModelType.All.ToString(), new Bitmap(allStream));
@@ -60,44 +56,7 @@ public class IconConverter : IValueConverter
     {
         if (value is ChannelModel channel)
         {
-            switch (channel.ModelType)
-            {
-                case ChannelModelType.All:
-                    return _allIcon;
-                case ChannelModelType.Starred:
-                    return _starredIcon;
-                case ChannelModelType.ReadLater:
-                    return _readLaterIcon;
-                default:
-                    var url = string.IsNullOrEmpty(channel.Link) ? channel.Url : channel.Link;
-                    if (!channel.IsChannelsGroup && !string.IsNullOrEmpty(url))
-                    {
-                        var key = new Uri(url).Host;
-                        if (_icons.ContainsKey(key))
-                        {
-                            return _icons[key];
-                        }
-                        else if (Directory.Exists(IconsDirectoryPath))
-                        {
-                            var files = Directory.GetFiles(IconsDirectoryPath, key);
-                            if (files.Any() && AllowedExtensions!.Contains(Path.GetExtension(files.First())))
-                            {
-                                var fileIcon = files.First();
-                                using (var stream = File.OpenRead(fileIcon))
-                                {
-                                    var img = new Bitmap(stream);
-                                    _icons.Add(key, img);
-                                    return img;
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        return null;
-                    }
-                    break;
-            }
+            return GetImageByChannelModel(channel);
         }
 
         return _defaultIcon;
@@ -106,6 +65,50 @@ public class IconConverter : IValueConverter
     public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
         throw new NotImplementedException();
+    }
+
+    public Bitmap? GetImageByChannelModel(ChannelModel channelModel)
+    {
+        var retVal = _defaultIcon;
+        switch (channelModel.ModelType)
+        {
+            case ChannelModelType.All:
+                retVal = _allIcon;
+                break;
+            case ChannelModelType.Starred:
+                retVal = _starredIcon;
+                break;
+            case ChannelModelType.ReadLater:
+                retVal = _readLaterIcon;
+                break;
+            default:
+                var url = string.IsNullOrEmpty(channelModel.Link) ? channelModel.Url : channelModel.Link;
+                if (!channelModel.IsChannelsGroup && !string.IsNullOrEmpty(url))
+                {
+                    var key = new Uri(url).Host;
+                    if (_icons.ContainsKey(key))
+                    {
+                        retVal = _icons[key];
+                    }
+                    else if (Directory.Exists(IconsDirectoryPath))
+                    {
+                        var files = Directory.GetFiles(IconsDirectoryPath, key);
+                        if (files.Any() && AllowedExtensions!.Contains(Path.GetExtension(files.First())))
+                        {
+                            var fileIcon = files.First();
+                            using (var stream = File.OpenRead(fileIcon))
+                            {
+                                var img = new Bitmap(stream);
+                                _icons.Add(key, img);
+                                retVal = img;
+                            }
+                        }
+                    }
+                }
+                break;
+        }
+
+        return retVal;
     }
 
     private string[]? _allowedExtensions;

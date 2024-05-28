@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ReactiveUI;
+using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
@@ -14,12 +15,14 @@ public class ChannelService : IChannelService
     private readonly IChannelsGroups _channelsGroups;
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
+    private readonly IIconConverter _iconConverter;
 
-    public ChannelService(IChannelsGroups channelsGroups, IChannels channels, IChannelItems channelItems)
+    public ChannelService(IChannelsGroups channelsGroups, IChannels channels, IChannelItems channelItems, IIconConverter iconConverter)
     {
         _channelsGroups = channelsGroups;
         _channels = channels;
         _channelItems = channelItems;
+        _iconConverter = iconConverter;
     }
     public void AddChannel(ChannelModel channel)
     {
@@ -30,8 +33,7 @@ public class ChannelService : IChannelService
 
         if (channel.IsChannelsGroup)
         {
-            var id = _channelsGroups.Create(new ChannelsGroup() { Name = channel.Title });
-            channel.Id = id;
+            channel.Id = _channelsGroups.Create(new ChannelsGroup() { Name = channel.Title });
         }
         else
         {
@@ -45,8 +47,7 @@ public class ChannelService : IChannelService
                 newChannel.ChannelsGroupId = channel.Parent.Id;
             }
 
-            var id = _channels.Create(newChannel);
-            channel.Id = id;
+            channel.Id = _channels.Create(newChannel);
         }
     }
 
@@ -72,13 +73,13 @@ public class ChannelService : IChannelService
         switch (channelModelType)
         {
             case ChannelModelType.All:
-                return new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, _channels.GetAllUnreadCount());
+                return new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, _channels.GetAllUnreadCount(), _iconConverter);
             case ChannelModelType.Starred:
-                return new ChannelModel(ChannelModelType.Starred, ChannelModel.CHANNELMODELTYPE_STARRED, _channels.GetStarredCount());
+                return new ChannelModel(ChannelModelType.Starred, ChannelModel.CHANNELMODELTYPE_STARRED, _channels.GetStarredCount(), _iconConverter);
             case ChannelModelType.ReadLater:
-                return new ChannelModel(ChannelModelType.ReadLater, ChannelModel.CHANNELMODELTYPE_READLATER, _channels.GetReadLaterCount());
+                return new ChannelModel(ChannelModelType.ReadLater, ChannelModel.CHANNELMODELTYPE_READLATER, _channels.GetReadLaterCount(), _iconConverter);
             default:
-                return new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, _channels.GetAllUnreadCount());
+                return new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, _channels.GetAllUnreadCount(), _iconConverter);
         }
     }
 
@@ -90,19 +91,25 @@ public class ChannelService : IChannelService
             return null;
         }
 
-        return new ChannelModel(channel.Id, channel.Title, channel.Description, channel.Url,
-            channel.ImageUrl, channel.Link, _channels.GetChannelUnreadCount(channel.Id), channel.Rank);
+        return new ChannelModel(channel.Id, channel.Title,
+                                channel.Description, channel.Url,
+                                channel.ImageUrl, channel.Link,
+                                _channels.GetChannelUnreadCount(channel.Id),
+                                channel.Rank, _iconConverter);
     }
 
     public IEnumerable<ChannelModel> GetChannels()
     {
         var retVal = _channelsGroups.GetAll().Select(group =>
-            new ChannelModel(group.Id, group.Name, _channels.GetByGroupId(group.Id).Select(x =>
-            new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link, _channels.GetChannelUnreadCount(x.Id), x.Rank)))).ToList();
+            new ChannelModel(group.Id, group.Name, group.Rank, _channels.GetByGroupId(group.Id).Select(x =>
+            new ChannelModel(x.Id, x.Title, x.Description,
+                    x.Url, x.ImageUrl, x.Link,
+                    _channels.GetChannelUnreadCount(x.Id),
+                    x.Rank, _iconConverter)))).ToList();
 
         retVal.AddRange(_channels.GetByGroupId(null).Select(x =>
             new ChannelModel(x.Id, x.Title, x.Description, x.Url, x.ImageUrl, x.Link,
-            _channels.GetChannelUnreadCount(x.Id), x.Rank)).ToList());
+            _channels.GetChannelUnreadCount(x.Id), x.Rank, _iconConverter)).ToList());
 
 
         foreach (var item in retVal)
@@ -205,5 +212,10 @@ public class ChannelService : IChannelService
     public int GetChannelUnreadCount(int channelId)
     {
         return _channels.GetChannelUnreadCount(channelId);
+    }
+
+    public ChannelModel CreateNewChannel(string url)
+    {
+        return new ChannelModel(0, new Uri(url).Host, null, url, null, null, 0, 0, _iconConverter);
     }
 }
