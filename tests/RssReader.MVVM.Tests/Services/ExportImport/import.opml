@@ -1,0 +1,14 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<opml version="1.0">
+  <head>
+    <title>RSS Reader Subscriptions</title>
+  </head>
+  <body>
+    <outline text="Channel Group 1" title="Channel Group 1">
+      <outline type="rss" text="Channel 1" title="Channel 1" xmlUrl="http://channel1.com/" htmlUrl="http://channel1.com/link" />
+      <outline type="rss" text="Channel 2" title="Channel 2" xmlUrl="http://channel2.com/" htmlUrl="http://channel2.com/link" />
+    </outline>
+    <outline type="rss" text="Channel 3" title="Channel 3" xmlUrl="http://channel3.com/" htmlUrl="http://channel3.com/link" />
+    <outline type="rss" text="Channel 4" title="Channel 4" xmlUrl="http://channel4.com/" htmlUrl="http://channel4.com/link" />
+  </body>
+</opml>

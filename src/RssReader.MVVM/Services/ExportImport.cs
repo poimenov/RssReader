@@ -21,6 +21,11 @@ public class ExportImport : IExportImport
 
     public void Export(string filePath)
     {
+        if (string.IsNullOrEmpty(filePath) || Path.GetExtension(filePath) != ".opml")
+        {
+            return;
+        }
+
         var xdoc = new XDocument();
         var opml = new XElement("opml", new XAttribute("version", "1.0"));
         xdoc.Add(opml);
@@ -55,7 +60,7 @@ public class ExportImport : IExportImport
 
     public void Import(string filePath)
     {
-        if (!Path.Exists(filePath) || Path.GetExtension(filePath) != ".opml")
+        if (string.IsNullOrEmpty(filePath) || !Path.Exists(filePath) || Path.GetExtension(filePath) != ".opml")
         {
             return;
         }
@@ -80,7 +85,7 @@ public class ExportImport : IExportImport
                         if (group == null)
                         {
                             group = new ChannelsGroup { Name = groupName };
-                            _channelsGroups.Create(group);
+                            group.Id = _channelsGroups.Create(group);
                         }
 
                         foreach (var child in item.Elements("outline"))
@@ -109,12 +114,12 @@ public class ExportImport : IExportImport
 
     private void ImportChannel(XElement item, int? groupId = null)
     {
-        Debug.WriteLine(item.Attribute("title")?.Value);
-        if (item != null && item.Name == "outline" && item.Attribute("xmlUrl") != null)
+        Debug.WriteLine(item.Attribute("text")?.Value);
+        if (item?.Name == "outline" && item?.Attribute("xmlUrl") != null)
         {
             var url = item.Attribute("xmlUrl")?.Value;
             var link = item.Attribute("htmlUrl")?.Value;
-            var title = item.Attribute("title")?.Value;
+            var title = item.Attribute("text")?.Value;
             if (!string.IsNullOrEmpty(url) && !_channels.Exists(url) && !string.IsNullOrEmpty(title))
             {
                 var channel = new Channel

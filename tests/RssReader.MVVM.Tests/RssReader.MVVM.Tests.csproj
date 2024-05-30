@@ -23,4 +23,10 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\RssReader.MVVM\RssReader.MVVM.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <ContentWithTargetPath Include="Services\ExportImport\import.opml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>import.opml</TargetPath>
+    </ContentWithTargetPath>
+  </ItemGroup>  
 </Project>
