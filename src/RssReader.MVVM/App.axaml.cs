@@ -79,7 +79,8 @@ public partial class App : Application
                 .AddTransient<IChannelItems, ChannelItems>()
                 .AddTransient<ICategories, Categories>()
                 .AddTransient<IIconConverter, IconConverter>()
-                //services                
+                //services  
+                .AddTransient<IHttpHandler, HttpHandler>()
                 .AddTransient<IExportImport, ExportImport>()
                 .AddTransient<IChannelReader, ChannelReader>()
                 .AddTransient<IChannelService, ChannelService>();

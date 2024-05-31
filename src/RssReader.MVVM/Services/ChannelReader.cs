@@ -2,14 +2,12 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using Avalonia.Threading;
 using CodeHollow.FeedReader;
-using HtmlAgilityPack;
 using log4net;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
@@ -20,13 +18,14 @@ namespace RssReader.MVVM.Services;
 
 public class ChannelReader : IChannelReader
 {
-    private const string USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
     private readonly object _locker = new object();
     private readonly ILog _log;
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
-    public ChannelReader(IChannels channels, IChannelItems channelItems, ILog log)
+    private readonly IHttpHandler _httpHandler;
+    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, ILog log)
     {
+        _httpHandler = httpHandler;
         _channels = channels;
         _channelItems = channelItems;
         _log = log;
@@ -159,17 +158,13 @@ public class ChannelReader : IChannelReader
                     if (imageUri == null)
                     {
                         var responseUri = siteUri;
-                        var webGet = new HtmlWeb
+                        var result = await _httpHandler.LoadFromWebAsync(siteUri.ToString(), cancellationToken);
+                        if (result.Key != null)
                         {
-                            CaptureRedirect = true
-                        };
-                        var document = await webGet.LoadFromWebAsync(siteUri.ToString(), cancellationToken);
-                        if (webGet.ResponseUri != null)
-                        {
-                            responseUri = webGet.ResponseUri;
-                            document = await webGet.LoadFromWebAsync(responseUri.ToString(), CancellationToken.None);
+                            responseUri = result.Key;
                         }
 
+                        var document = result.Value;
                         var iconLink = document.DocumentNode.SelectSingleNode("//head/link[@rel=\"icon\"]");
                         if (iconLink != null)
                         {
@@ -196,18 +191,12 @@ public class ChannelReader : IChannelReader
                     if (imageUri != null)
                     {
                         Debug.WriteLine($"Downloading icon : {imageUri}");
-                        using (var client = new HttpClient())
+                        var data = await _httpHandler.GetByteArrayAsync(imageUri, cancellationToken);
+                        var fileExtension = GetExtension(data);
+                        if (data != null && data.Length > 0 && !string.IsNullOrEmpty(fileExtension))
                         {
-                            client.DefaultRequestHeaders.Clear();
-                            client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
-                            var response = await client.GetAsync(imageUri, cancellationToken);
-                            var data = await response.Content.ReadAsByteArrayAsync(cancellationToken);
-                            var fileExtension = GetExtension(data);
-                            if (data != null && data.Length > 0 && !string.IsNullOrEmpty(fileExtension))
-                            {
-                                var fileName = $"{siteUri.Host}{fileExtension}";
-                                File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
-                            }
+                            var fileName = $"{siteUri.Host}{fileExtension}";
+                            File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
                         }
                     }
                 }
@@ -253,13 +242,7 @@ public class ChannelReader : IChannelReader
 
     private async Task<Feed?> GetFeedAsync(string url, CancellationToken cancellationToken)
     {
-        string response;
-        using (var client = new HttpClient())
-        {
-            client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
-            response = await client.GetStringAsync(url, cancellationToken);
-        }
+        string response = await _httpHandler.GetStringAsync(url, cancellationToken);
         var doc = XDocument.Parse(response);
         return FeedReader.ReadFromString(doc.ToString());
     }
