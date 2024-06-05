@@ -10,6 +10,36 @@ namespace RssReader.MVVM.Tests.Services;
 public class ExportImportTests
 {
     [Fact]
+    public void Export_WithoutAction()
+    {
+        //Arrange
+        var mockChannelsGroups = new Mock<IChannelsGroups>();
+        var mockChannels = new Mock<IChannels>();
+        var exportImport = new ExportImport(mockChannelsGroups.Object, mockChannels.Object);
+
+        // Act
+        exportImport.Export(string.Empty);
+
+        // Assert
+        mockChannelsGroups.Verify(m => m.GetAll(), Times.Never);
+        mockChannels.Verify(m => m.GetByGroupId(It.IsAny<int?>()), Times.Never);
+
+        //Act
+        var filePath = GetFullFilename("test.txt");
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+
+        exportImport.Export(filePath);
+
+        // Assert
+        mockChannelsGroups.Verify(m => m.GetAll(), Times.Never);
+        mockChannels.Verify(m => m.GetByGroupId(It.IsAny<int?>()), Times.Never);
+        Assert.False(File.Exists(filePath));
+    }
+
+    [Fact]
     public void Export_SavesValidOpmlFile()
     {
         // Arrange
@@ -108,6 +138,54 @@ public class ExportImportTests
     }
 
     [Fact]
+    public void Import_WithoutAction()
+    {
+        //Arrange
+        var mockChannelsGroups = new Mock<IChannelsGroups>();
+        var mockChannels = new Mock<IChannels>();
+        var exportImport = new ExportImport(mockChannelsGroups.Object, mockChannels.Object);
+
+        // Act
+        exportImport.Import(string.Empty);
+
+        // Assert
+        mockChannelsGroups.Verify(m => m.Get(It.IsAny<string>()), Times.Never);
+        mockChannelsGroups.Verify(m => m.Create(It.IsAny<ChannelsGroup>()), Times.Never);
+        mockChannels.Verify(m => m.Exists(It.IsAny<string>()), Times.Never);
+        mockChannels.Verify(m => m.Create(It.IsAny<Channel>()), Times.Never);
+
+        //Act
+        var filePath = GetFullFilename("test.opml");
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+        exportImport.Import(filePath);
+
+        // Assert
+        mockChannelsGroups.Verify(m => m.Get(It.IsAny<string>()), Times.Never);
+        mockChannelsGroups.Verify(m => m.Create(It.IsAny<ChannelsGroup>()), Times.Never);
+        mockChannels.Verify(m => m.Exists(It.IsAny<string>()), Times.Never);
+        mockChannels.Verify(m => m.Create(It.IsAny<Channel>()), Times.Never);
+
+        //Act
+        filePath = GetFullFilename("test.txt");
+        if (File.Exists(filePath))
+        {
+            File.Delete(filePath);
+        }
+        File.WriteAllText(filePath, "test");
+
+        exportImport.Import(filePath);
+
+        // Assert
+        mockChannelsGroups.Verify(m => m.Get(It.IsAny<string>()), Times.Never);
+        mockChannelsGroups.Verify(m => m.Create(It.IsAny<ChannelsGroup>()), Times.Never);
+        mockChannels.Verify(m => m.Exists(It.IsAny<string>()), Times.Never);
+        mockChannels.Verify(m => m.Create(It.IsAny<Channel>()), Times.Never);
+    }
+
+    [Fact]
     public void Import_LoadsValidOpmlFile()
     {
         // Arrange
@@ -157,7 +235,7 @@ public class ExportImportTests
         }
     }
 
-    static string GetFullFilename(string filename)
+    private static string GetFullFilename(string filename)
     {
         string executable = new Uri(Assembly.GetExecutingAssembly().Location).LocalPath;
         return Path.GetFullPath(Path.Combine(Path.GetDirectoryName(executable)!, filename));

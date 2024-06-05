@@ -12,6 +12,7 @@ namespace RssReader.MVVM.Services;
 
 public class HttpHandler : IHttpHandler
 {
+    private const string USER_AGENT_HEADER_NAME = "User-Agent";
     private const string USER_AGENT = "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
 
     public async Task<byte[]> GetByteArrayAsync(Uri uri, CancellationToken cancellationToken)
@@ -19,7 +20,7 @@ public class HttpHandler : IHttpHandler
         using (var client = new HttpClient())
         {
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+            client.DefaultRequestHeaders.Add(USER_AGENT_HEADER_NAME, USER_AGENT);
             var response = await client.GetAsync(uri, cancellationToken);
             return await response.Content.ReadAsByteArrayAsync(cancellationToken);
         }
@@ -36,7 +37,7 @@ public class HttpHandler : IHttpHandler
         using (var client = new HttpClient())
         {
             client.DefaultRequestHeaders.Clear();
-            client.DefaultRequestHeaders.Add("User-Agent", USER_AGENT);
+            client.DefaultRequestHeaders.Add(USER_AGENT_HEADER_NAME, USER_AGENT);
             return await client.GetStringAsync(url, cancellationToken);
         }
     }

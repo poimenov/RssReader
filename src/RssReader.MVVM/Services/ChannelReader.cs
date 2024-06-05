@@ -23,15 +23,18 @@ public class ChannelReader : IChannelReader
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
     private readonly IHttpHandler _httpHandler;
-    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, ILog log)
+    private readonly IDispatcherWrapper _dispatcherWrapper;
+
+    public ChannelReader(IHttpHandler httpHandler, IDispatcherWrapper dispatcherWrapper, IChannels channels, IChannelItems channelItems, ILog log)
     {
         _httpHandler = httpHandler;
+        _dispatcherWrapper = dispatcherWrapper;
         _channels = channels;
         _channelItems = channelItems;
         _log = log;
     }
 
-    public async Task ReadChannelAsync(ChannelModel channelModel, CancellationToken cancellationToken)
+    public async Task ReadChannelAsync(ChannelModel? channelModel, CancellationToken cancellationToken)
     {
         if (channelModel == null || channelModel.Id <= 0 || string.IsNullOrEmpty(channelModel.Url))
         {
@@ -87,10 +90,10 @@ public class ChannelReader : IChannelReader
 
                 lock (_locker)
                 {
-                    if (!string.IsNullOrEmpty(feed.Title) && !string.IsNullOrEmpty(feed.Link))
+                    if (!string.IsNullOrEmpty(feed.Title))
                     {
                         channel.Title = (new Uri(channel.Url).Host == channel.Title) ? feed.Title : channel.Title;
-                        channel.Link = feed.Link;
+                        channel.Link = feed.Link ?? siteLink;
                         channel.Description = feed.Description;
                         channel.ImageUrl = feed.ImageUrl;
                         channel.Language = feed.Language;
@@ -115,7 +118,7 @@ public class ChannelReader : IChannelReader
                     }).ToList().ForEach(x => _channelItems.Create(x.Item, x.Categories));
                 }
 
-                await Dispatcher.UIThread.InvokeAsync(() =>
+                await _dispatcherWrapper.InvokeAsync(() =>
                 {
                     channelModel.Title = channel.Title;
                     channelModel.Description = channel.Description;
@@ -123,7 +126,7 @@ public class ChannelReader : IChannelReader
                     channelModel.ImageUrl = channel.ImageUrl;
                     channelModel.Url = channel.Url;
                     channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
-                });
+                }, DispatcherPriority.Background, cancellationToken);
                 Debug.WriteLine($"End read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             }
             else
@@ -147,13 +150,12 @@ public class ChannelReader : IChannelReader
         {
             try
             {
-                var directioryPath = Path.Combine(AppSettings.AppDataPath, "Icons");
-                if (!Directory.Exists(directioryPath))
+                if (!Directory.Exists(IconsDirectoryPath))
                 {
-                    Directory.CreateDirectory(directioryPath);
+                    Directory.CreateDirectory(IconsDirectoryPath);
                 }
 
-                if (siteUri != null && Directory.GetFiles(directioryPath, $"{siteUri.Host}.*").Length == 0)
+                if (siteUri != null && Directory.GetFiles(IconsDirectoryPath, $"{siteUri.Host}.*").Length == 0)
                 {
                     if (imageUri == null)
                     {
@@ -196,7 +198,7 @@ public class ChannelReader : IChannelReader
                         if (data != null && data.Length > 0 && !string.IsNullOrEmpty(fileExtension))
                         {
                             var fileName = $"{siteUri.Host}{fileExtension}";
-                            File.WriteAllBytes(Path.Combine(directioryPath, fileName), data);
+                            File.WriteAllBytes(Path.Combine(IconsDirectoryPath, fileName), data);
                         }
                     }
                 }
@@ -206,6 +208,24 @@ public class ChannelReader : IChannelReader
                 Debug.WriteLine(ex);
                 _log.Error(ex);
             }
+        }
+    }
+
+    private string _iconsDirectoryPath = string.Empty;
+    public string IconsDirectoryPath
+    {
+        get
+        {
+            if (string.IsNullOrEmpty(_iconsDirectoryPath))
+            {
+                _iconsDirectoryPath = Path.Combine(AppSettings.AppDataPath, "Icons");
+            }
+
+            return _iconsDirectoryPath;
+        }
+        set
+        {
+            _iconsDirectoryPath = value;
         }
     }
 

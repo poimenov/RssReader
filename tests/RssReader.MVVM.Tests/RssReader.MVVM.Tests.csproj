@@ -28,5 +28,13 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <TargetPath>import.opml</TargetPath>
     </ContentWithTargetPath>
-  </ItemGroup>  
+    <ContentWithTargetPath Include="Services\ChannelReader\rss.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>rss.xml</TargetPath>
+    </ContentWithTargetPath>   
+    <ContentWithTargetPath Include="Services\ChannelReader\rss.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <TargetPath>rss.png</TargetPath>
+    </ContentWithTargetPath>      
+  </ItemGroup>
 </Project>
