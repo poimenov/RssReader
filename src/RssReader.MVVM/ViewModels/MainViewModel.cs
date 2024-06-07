@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using log4net;
+using Microsoft.Extensions.Options;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess;
 using RssReader.MVVM.DataAccess.Interfaces;
@@ -18,9 +19,15 @@ public class MainViewModel : ViewModelBase
     private readonly ICategories _categories;
     private readonly ILinkOpeningService _linkOpeningService;
     private readonly IClipboardService _clipboardService;
+    private readonly IFilePickerService _filePickerService;
+    private readonly IThemeService _themeService;
+    private readonly AppSettings _settings;
     private readonly ILog _log;
 
-    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader, IChannelItems channelItems, ICategories categories, ILinkOpeningService linkOpeningService, IClipboardService clipboardService, ILog log)
+    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader,
+                            IChannelItems channelItems, ICategories categories, ILinkOpeningService linkOpeningService,
+                            IClipboardService clipboardService, IFilePickerService filePickerService, IThemeService themeService,
+                            IOptions<AppSettings> options, ILog log)
     {
         _channelService = channelService;
         _exportImport = exportImport;
@@ -29,6 +36,9 @@ public class MainViewModel : ViewModelBase
         _categories = categories;
         _linkOpeningService = linkOpeningService;
         _clipboardService = clipboardService;
+        _filePickerService = filePickerService;
+        _themeService = themeService;
+        _settings = options.Value;
         _log = log;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
@@ -37,9 +47,9 @@ public class MainViewModel : ViewModelBase
         {
             PaneCommand = TriggerPaneCommand
         };
-        ContentViewModel = new ContentViewModel(_channelService, _categories, _linkOpeningService, clipboardService);
+        ContentViewModel = new ContentViewModel(_channelService, _categories, _linkOpeningService, _clipboardService, _themeService);
         TreeViewModel = new TreeViewModel(_channelService, _channelReader, _log);
-        HeaderViewModel = new HeaderViewModel(_exportImport, _linkOpeningService);
+        HeaderViewModel = new HeaderViewModel(_exportImport, _linkOpeningService, _filePickerService, _themeService, _settings);
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
         .Subscribe(x =>

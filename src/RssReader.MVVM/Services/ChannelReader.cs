@@ -9,6 +9,7 @@ using System.Xml.Linq;
 using Avalonia.Threading;
 using CodeHollow.FeedReader;
 using log4net;
+using Microsoft.Extensions.Options;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
@@ -24,13 +25,15 @@ public class ChannelReader : IChannelReader
     private readonly IChannelItems _channelItems;
     private readonly IHttpHandler _httpHandler;
     private readonly IDispatcherWrapper _dispatcherWrapper;
+    private readonly AppSettings _appSettings;
 
-    public ChannelReader(IHttpHandler httpHandler, IDispatcherWrapper dispatcherWrapper, IChannels channels, IChannelItems channelItems, ILog log)
+    public ChannelReader(IHttpHandler httpHandler, IDispatcherWrapper dispatcherWrapper, IChannels channels, IChannelItems channelItems, IOptions<AppSettings> options, ILog log)
     {
         _httpHandler = httpHandler;
         _dispatcherWrapper = dispatcherWrapper;
         _channels = channels;
         _channelItems = channelItems;
+        _appSettings = options.Value;
         _log = log;
     }
 
@@ -217,7 +220,7 @@ public class ChannelReader : IChannelReader
         {
             if (string.IsNullOrEmpty(_iconsDirectoryPath))
             {
-                _iconsDirectoryPath = Path.Combine(AppSettings.AppDataPath, "Icons");
+                _iconsDirectoryPath = Path.Combine(_appSettings.AppDataPath, "Icons");
             }
 
             return _iconsDirectoryPath;

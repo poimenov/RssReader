@@ -10,9 +10,15 @@ public class AppSettings
     public const string APPLICATION_NAME = "RssReader";
     public const string JSON_FILE_NAME = "appsettings.json";
     public static string AvaResPath => $"avares://{APPLICATION_NAME}.MVVM/Assets";
-    public static string AppDataPath => Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME);
+
     public string? DefaultLanguage { get; set; }
     public string? DefaultTheme { get; set; }
+    private string _appDataPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), APPLICATION_NAME);
+    public string AppDataPath
+    {
+        get => _appDataPath;
+        set => _appDataPath = value;
+    }
     public ThemeVariant GetTheme()
     {
         switch (DefaultTheme)

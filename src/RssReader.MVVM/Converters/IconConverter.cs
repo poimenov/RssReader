@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using Microsoft.Extensions.Options;
 using RssReader.MVVM.Models;
 
 namespace RssReader.MVVM.Converters;
@@ -12,15 +13,17 @@ namespace RssReader.MVVM.Converters;
 public class IconConverter : IIconConverter
 {
     private readonly Dictionary<string, Bitmap> _icons;
+    private readonly AppSettings _appSettings;
     private readonly Bitmap _defaultIcon;
     private readonly Bitmap _allIcon;
     private readonly Bitmap _starredIcon;
     private readonly Bitmap _readLaterIcon;
     private const string DEFAULT = "default";
 
-    public IconConverter()
+    public IconConverter(IOptions<AppSettings> options)
     {
         _icons = new Dictionary<string, Bitmap>();
+        _appSettings = options.Value;
         using (var defaultStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/rss-button-orange.32.png")))
         using (var allStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/document-documents-file-page-svgrepo-com.png")))
         using (var starredStream = AssetLoader.Open(new Uri($"{AppSettings.AvaResPath}/bookmark-favorite-rating-star-svgrepo-com.png")))
@@ -129,7 +132,7 @@ public class IconConverter : IIconConverter
     {
         get
         {
-            return Path.Combine(AppSettings.AppDataPath, "Icons");
+            return Path.Combine(_appSettings.AppDataPath, "Icons");
         }
     }
 }

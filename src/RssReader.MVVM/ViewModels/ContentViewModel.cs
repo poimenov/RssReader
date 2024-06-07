@@ -4,9 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
-using Avalonia;
 using Avalonia.Media.Imaging;
-using DynamicData.Binding;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
@@ -21,36 +19,33 @@ public class ContentViewModel : ViewModelBase
     private readonly ICategories _categories;
     private readonly ILinkOpeningService _linkOpeningService;
     private readonly IClipboardService _clipboardService;
-    public ContentViewModel(IChannelService channelService, ICategories categories, ILinkOpeningService linkOpeningService, IClipboardService clipboardService)
+    private readonly IThemeService _themeService;
+    public ContentViewModel(IChannelService channelService, ICategories categories, ILinkOpeningService linkOpeningService, IClipboardService clipboardService, IThemeService themeService)
     {
         _channelService = channelService;
         _categories = categories;
         _linkOpeningService = linkOpeningService;
         _clipboardService = clipboardService;
+        _themeService = themeService;
         OpenLinkCommand = CreateOpenLinkCommand();
         CopyLinkCommand = CreateCopyLinkCommand();
         ViewPostsCommand = CreateViewPostsCommand();
-        if (Application.Current is App app)
-        {
-            app.WhenPropertyChanged(x => x.ActualThemeVariant)
-            .Subscribe(x =>
-            {
-                var style = Application.Current.Styles.FirstOrDefault(x => x.GetType() == typeof(Avalonia.Themes.Fluent.FluentTheme));
-                if (style != null && x.Value != null)
-                {
-                    var theme = (Avalonia.Themes.Fluent.FluentTheme)style;
-                    var pallete = theme.Palettes[x.Value];
 
-                    Css = @$"body {{ color: {pallete.BaseHigh};}}
-                    div {{ color: {pallete.BaseHigh};}}
-                    span {{ color: {pallete.BaseHigh};}}
-                    table {{ color: {pallete.BaseHigh};}}
-                    b {{ color: {pallete.BaseHigh};}}
-                    h1, h2, h3 {{ color: {pallete.BaseHigh}; }}
-                    p {{ color: {pallete.BaseHigh};}}";
-                }
-            });
-        }
+        _themeService.WhenAnyValue(x => x.RequestedThemeVariant)
+        .Subscribe(x =>
+        {
+            var pallete = _themeService.GetColorPaletteResource(_themeService.ActualThemeVariant);
+            if (pallete is not null)
+            {
+                Css = @$"body {{ color: {pallete.BaseHigh};}}
+                div {{ color: {pallete.BaseHigh};}}
+                span {{ color: {pallete.BaseHigh};}}
+                table {{ color: {pallete.BaseHigh};}}
+                b {{ color: {pallete.BaseHigh};}}
+                h1, h2, h3 {{ color: {pallete.BaseHigh}; }}
+                p {{ color: {pallete.BaseHigh};}}";
+            }
+        });
 
         _unreadItemsCountChanged = false;
         _starredCount = _channelService.GetStarredCount();

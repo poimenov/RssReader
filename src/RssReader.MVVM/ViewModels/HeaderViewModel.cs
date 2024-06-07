@@ -1,10 +1,8 @@
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
 using ReactiveUI;
-using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
@@ -17,19 +15,22 @@ public class HeaderViewModel : ViewModelBase
     private const string ICON_TO_DARK = "ToDarkTheme";
     private readonly IExportImport? _exportImport;
     private readonly ILinkOpeningService _linkOpeningService;
-    public HeaderViewModel(IExportImport? exportImport, ILinkOpeningService linkOpeningService)
+    private readonly IFilePickerService _filePickerService;
+    private readonly IThemeService _themeService;
+    private readonly AppSettings _settings;
+    public HeaderViewModel(IExportImport? exportImport, ILinkOpeningService linkOpeningService, IFilePickerService filePickerService, IThemeService themeService, AppSettings settings)
     {
         _exportImport = exportImport;
         _linkOpeningService = linkOpeningService;
+        _filePickerService = filePickerService;
+        _themeService = themeService;
+        _settings = settings;
         _importCount = 0;
         ExportCommand = CreateExportCommand();
         ImportCommand = CreateImportCommand();
         SwitchThemeCommand = CreateSwitchThemeCommand();
         OpenSourceCodeCommand = CreateOpenSourceCodeCommand();
-        if (Application.Current is App app)
-        {
-            SetSwitchThemeText(app.ActualThemeVariant);
-        }
+        SetSwitchThemeText(_themeService.ActualThemeVariant);
     }
 
     private static FilePickerFileType Opml { get; } = new("opml file")
@@ -68,24 +69,14 @@ public class HeaderViewModel : ViewModelBase
         return ReactiveCommand.Create(
         async () =>
             {
-                if (Application.Current is App app)
+                var file = await _filePickerService.SaveFilePickerAsync(new FilePickerSaveOptions
                 {
-                    var topLevel = TopLevel.GetTopLevel(app.TopWindow);
+                    Title = "Save Opml File"
+                });
 
-                    if (topLevel == null)
-                    {
-                        return;
-                    }
-
-                    var file = await topLevel.StorageProvider.SaveFilePickerAsync(new FilePickerSaveOptions
-                    {
-                        Title = "Save Opml File"
-                    });
-
-                    if (file is not null)
-                    {
-                        _exportImport?.Export(file.Path.LocalPath);
-                    }
+                if (file is not null)
+                {
+                    _exportImport?.Export(file.Path.LocalPath);
                 }
             }
         );
@@ -98,29 +89,18 @@ public class HeaderViewModel : ViewModelBase
         return ReactiveCommand.Create(
         async () =>
             {
-                if (Application.Current is App app)
+                var files = await _filePickerService.OpenFilePickerAsync(new FilePickerOpenOptions
                 {
-                    var topLevel = TopLevel.GetTopLevel((app.TopWindow));
+                    Title = "Open Opml File",
+                    AllowMultiple = false,
+                    FileTypeFilter = new[] { Opml }
+                });
 
-                    if (topLevel == null)
-                    {
-                        return;
-                    }
-
-                    var files = await topLevel.StorageProvider.OpenFilePickerAsync(new FilePickerOpenOptions
-                    {
-                        Title = "Open Opml File",
-                        AllowMultiple = false,
-                        FileTypeFilter = new[] { Opml }
-                    });
-
-                    if (files.Count >= 1)
-                    {
-                        _exportImport?.Import(files[0].Path.LocalPath);
-                        ImportCount++;
-                    }
+                if (files is not null && files.Count >= 1)
+                {
+                    _exportImport?.Import(files[0].Path.LocalPath);
+                    ImportCount++;
                 }
-
             }
         );
     }
@@ -131,15 +111,11 @@ public class HeaderViewModel : ViewModelBase
         return ReactiveCommand.Create(
             () =>
             {
-                if (Application.Current is App app)
-                {
-                    var theme = (app.ActualThemeVariant == ThemeVariant.Dark) ? ThemeVariant.Light : ThemeVariant.Dark;
-                    app.RequestedThemeVariant = theme;
-                    var settings = app.Settings;
-                    settings.SetTheme(theme);
-                    settings.Save();
-                    SetSwitchThemeText(theme);
-                }
+                var theme = (_themeService.ActualThemeVariant != ThemeVariant.Light) ? ThemeVariant.Light : ThemeVariant.Dark;
+                _themeService.RequestedThemeVariant = theme;
+                _settings.SetTheme(theme);
+                _settings.Save();
+                SetSwitchThemeText(theme);
             }
         );
     }
@@ -160,22 +136,6 @@ public class HeaderViewModel : ViewModelBase
     private void SetSwitchThemeText(ThemeVariant themeVariant)
     {
         SwitchThemeText = (themeVariant == ThemeVariant.Dark) ? SWITCH_TO_LIGHT : SWITCH_TO_DARK;
-        SwitchIcon = GetIconForName((themeVariant == ThemeVariant.Dark) ? ICON_TO_LIGHT : ICON_TO_DARK);
-
-    }
-
-    private StreamGeometry? GetIconForName(string name)
-    {
-        StreamGeometry? retVal = null;
-        if (CurrentApplication.Styles.TryGetResource(name,
-            CurrentApplication.ActualThemeVariant, out object? icon))
-        {
-            if (icon is StreamGeometry streamGeometry)
-            {
-                return retVal = streamGeometry;
-            }
-        }
-
-        return retVal;
+        SwitchIcon = _themeService.GetResource<StreamGeometry>((themeVariant == ThemeVariant.Dark) ? ICON_TO_LIGHT : ICON_TO_DARK);
     }
 }

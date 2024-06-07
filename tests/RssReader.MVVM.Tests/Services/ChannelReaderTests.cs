@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Xml;
 using Avalonia.Threading;
 using log4net;
+using Microsoft.Extensions.Options;
 using Moq;
 using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess.Interfaces;
@@ -26,8 +27,9 @@ namespace RssReader.MVVM.Tests.Services
             var mockLog = new Mock<ILog>();
             var mockIconConverter = new Mock<IIconConverter>();
             var mockDispatherWrapper = new Mock<IDispatcherWrapper>();
+            var mockAppSettings = new Mock<IOptions<AppSettings>>();
 
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockDispatherWrapper.Object, mockChannels.Object, mockChannelItems.Object, mockLog.Object);
+            var channelReader = new ChannelReader(mockHttpHandler.Object, mockDispatherWrapper.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object);
 
             ChannelModel? channelModel = null;
             // Act & Assert
@@ -89,8 +91,10 @@ namespace RssReader.MVVM.Tests.Services
             var mockDispatherWrapper = new Mock<IDispatcherWrapper>();
             mockDispatherWrapper.Setup(d => d.InvokeAsync(It.IsAny<Action>(), It.IsAny<DispatcherPriority>(), It.IsAny<CancellationToken>())).Callback((Action action, DispatcherPriority priority, CancellationToken cancellationToken) => action());
 
+            var mockAppSettings = new Mock<IOptions<AppSettings>>();
+
             var channelModel = new ChannelModel(1, "Test", null, rssUrl, null, null, 0, 0, mockIconConverter.Object);
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockDispatherWrapper.Object, mockChannels.Object, mockChannelItems.Object, mockLog.Object)
+            var channelReader = new ChannelReader(mockHttpHandler.Object, mockDispatherWrapper.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object)
             {
                 IconsDirectoryPath = GetFullPath("Icons")
             };

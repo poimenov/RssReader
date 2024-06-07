@@ -38,14 +38,6 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-            AppDomain.CurrentDomain.SetData("DataDirectory", AppSettings.AppDataPath);
-
-            var dataDirectory = Environment.GetEnvironmentVariable(DATA_DIRECTORY);
-            if (dataDirectory == null)
-            {
-                Environment.SetEnvironmentVariable(DATA_DIRECTORY, AppSettings.AppDataPath);
-            }
-
             var builder = Host.CreateApplicationBuilder();
 
             builder.Configuration
@@ -72,6 +64,9 @@ public partial class App : Application
                          GetRequiredService<ICategories>(),
                          GetRequiredService<ILinkOpeningService>(),
                          GetRequiredService<IClipboardService>(),
+                         GetRequiredService<IFilePickerService>(),
+                         GetRequiredService<IThemeService>(),
+                         GetRequiredService<IOptions<AppSettings>>(),
                          GetRequiredService<ILog>()
                      )
                 })
@@ -83,6 +78,8 @@ public partial class App : Application
                 .AddTransient<ICategories, Categories>()
                 .AddTransient<IIconConverter, IconConverter>()
                 //services
+                .AddTransient<IThemeService, ThemeService>()
+                .AddTransient<IFilePickerService, FilePickerService>()
                 .AddTransient<IClipboardService, ClipboardService>()
                 .AddTransient<IPlatformService, PlatformService>()
                 .AddTransient<IProcessService, ProcessService>()
@@ -99,6 +96,12 @@ public partial class App : Application
 
             try
             {
+                AppDomain.CurrentDomain.SetData("DataDirectory", Settings.AppDataPath);
+                var dataDirectory = Environment.GetEnvironmentVariable(DATA_DIRECTORY);
+                if (dataDirectory == null)
+                {
+                    Environment.SetEnvironmentVariable(DATA_DIRECTORY, Settings.AppDataPath);
+                }
                 GetRequiredService<IDatabaseMigrator>().MigrateDatabase();
                 RequestedThemeVariant = Settings.GetTheme();
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
@@ -150,7 +153,7 @@ public partial class App : Application
         }
     }
 
-    public AppSettings Settings
+    private AppSettings Settings
     {
         get
         {

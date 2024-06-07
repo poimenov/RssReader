@@ -1,6 +1,7 @@
 using System.IO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using RssReader.MVVM.DataAccess.Interfaces;
 
 namespace RssReader.MVVM.DataAccess;
@@ -11,17 +12,18 @@ namespace RssReader.MVVM.DataAccess;
 public class DatabaseMigrator : IDatabaseMigrator
 {
     private readonly ILogger<DatabaseMigrator> _logger;
-    private Database _database;
-    public DatabaseMigrator(ILogger<DatabaseMigrator> logger)
+    private readonly AppSettings _settings;
+    public DatabaseMigrator(ILogger<DatabaseMigrator> logger, IOptions<AppSettings> options)
     {
         _logger = logger;
+        _settings = options.Value;
     }
     public void MigrateDatabase()
     {
-        var path = Path.Combine(AppSettings.AppDataPath, Database.DB_FILE_NAME);
+        var path = Path.Combine(_settings.AppDataPath, Database.DB_FILE_NAME);
         if (!File.Exists(path))
         {
-            using (_database = new Database())
+            using (var _database = new Database())
             {
                 _database.Database.Migrate();
             }
