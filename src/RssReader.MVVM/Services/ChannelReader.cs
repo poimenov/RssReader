@@ -50,7 +50,6 @@ public class ChannelReader : IChannelReader
 
         try
         {
-            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
             Debug.WriteLine($"Start read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
 
             Feed? feed = null;

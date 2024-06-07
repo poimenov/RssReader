@@ -1,5 +1,6 @@
 using System;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -69,6 +70,8 @@ public partial class App : Application
                          GetRequiredService<IChannelReader>(),
                          GetRequiredService<IChannelItems>(),
                          GetRequiredService<ICategories>(),
+                         GetRequiredService<ILinkOpeningService>(),
+                         GetRequiredService<IClipboardService>(),
                          GetRequiredService<ILog>()
                      )
                 })
@@ -79,7 +82,11 @@ public partial class App : Application
                 .AddTransient<IChannelItems, ChannelItems>()
                 .AddTransient<ICategories, Categories>()
                 .AddTransient<IIconConverter, IconConverter>()
-                //services 
+                //services
+                .AddTransient<IClipboardService, ClipboardService>()
+                .AddTransient<IPlatformService, PlatformService>()
+                .AddTransient<IProcessService, ProcessService>()
+                .AddTransient<ILinkOpeningService, LinkOpeningService>()
                 .AddTransient<IDispatcherWrapper, DispatcherWrapper>()
                 .AddTransient<IHttpHandler, HttpHandler>()
                 .AddTransient<IExportImport, ExportImport>()
@@ -94,6 +101,7 @@ public partial class App : Application
             {
                 GetRequiredService<IDatabaseMigrator>().MigrateDatabase();
                 RequestedThemeVariant = Settings.GetTheme();
+                Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 desktop.MainWindow = this.TopWindow;
                 desktop.ShutdownRequested += OnShutdownRequested;
                 _ = _host.StartAsync(_cancellationTokenSource.Token);

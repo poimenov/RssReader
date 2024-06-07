@@ -16,9 +16,11 @@ public class HeaderViewModel : ViewModelBase
     private const string ICON_TO_LIGHT = "ToLightTheme";
     private const string ICON_TO_DARK = "ToDarkTheme";
     private readonly IExportImport? _exportImport;
-    public HeaderViewModel(IExportImport? exportImport)
+    private readonly ILinkOpeningService _linkOpeningService;
+    public HeaderViewModel(IExportImport? exportImport, ILinkOpeningService linkOpeningService)
     {
         _exportImport = exportImport;
+        _linkOpeningService = linkOpeningService;
         _importCount = 0;
         ExportCommand = CreateExportCommand();
         ImportCommand = CreateImportCommand();
@@ -148,8 +150,7 @@ public class HeaderViewModel : ViewModelBase
         return ReactiveCommand.Create(
             () =>
             {
-                var link = "https://github.com/poimenov/RssReader";
-                link.OpenUrl();
+                _linkOpeningService.OpenUrl("https://github.com/poimenov/RssReader");
             }
         );
     }

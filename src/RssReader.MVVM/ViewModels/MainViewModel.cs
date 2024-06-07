@@ -16,15 +16,19 @@ public class MainViewModel : ViewModelBase
     private readonly IChannelReader _channelReader;
     private readonly IChannelItems _channelItems;
     private readonly ICategories _categories;
+    private readonly ILinkOpeningService _linkOpeningService;
+    private readonly IClipboardService _clipboardService;
     private readonly ILog _log;
 
-    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader, IChannelItems channelItems, ICategories categories, ILog log)
+    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader, IChannelItems channelItems, ICategories categories, ILinkOpeningService linkOpeningService, IClipboardService clipboardService, ILog log)
     {
         _channelService = channelService;
         _exportImport = exportImport;
         _channelReader = channelReader;
         _channelItems = channelItems;
         _categories = categories;
+        _linkOpeningService = linkOpeningService;
+        _clipboardService = clipboardService;
         _log = log;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
@@ -33,9 +37,9 @@ public class MainViewModel : ViewModelBase
         {
             PaneCommand = TriggerPaneCommand
         };
-        ContentViewModel = new ContentViewModel(_channelService, _categories);
+        ContentViewModel = new ContentViewModel(_channelService, _categories, _linkOpeningService, clipboardService);
         TreeViewModel = new TreeViewModel(_channelService, _channelReader, _log);
-        HeaderViewModel = new HeaderViewModel(_exportImport);
+        HeaderViewModel = new HeaderViewModel(_exportImport, _linkOpeningService);
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
         .Subscribe(x =>

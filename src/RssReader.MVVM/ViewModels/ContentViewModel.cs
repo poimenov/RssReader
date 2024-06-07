@@ -5,13 +5,11 @@ using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia;
-using Avalonia.Controls;
 using Avalonia.Media.Imaging;
 using DynamicData.Binding;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
-using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -21,10 +19,14 @@ public class ContentViewModel : ViewModelBase
 {
     private readonly IChannelService _channelService;
     private readonly ICategories _categories;
-    public ContentViewModel(IChannelService channelService, ICategories categories)
+    private readonly ILinkOpeningService _linkOpeningService;
+    private readonly IClipboardService _clipboardService;
+    public ContentViewModel(IChannelService channelService, ICategories categories, ILinkOpeningService linkOpeningService, IClipboardService clipboardService)
     {
         _channelService = channelService;
         _categories = categories;
+        _linkOpeningService = linkOpeningService;
+        _clipboardService = clipboardService;
         OpenLinkCommand = CreateOpenLinkCommand();
         CopyLinkCommand = CreateCopyLinkCommand();
         ViewPostsCommand = CreateViewPostsCommand();
@@ -205,7 +207,7 @@ public class ContentViewModel : ViewModelBase
         return ReactiveCommand.Create<string, Unit>(
             (link) =>
             {
-                link.OpenUrl();
+                _linkOpeningService.OpenUrl(link);
                 return Unit.Default;
             }
         );
@@ -217,13 +219,9 @@ public class ContentViewModel : ViewModelBase
         return ReactiveCommand.CreateFromTask<string, Unit>(
             async (link) =>
             {
-                if (Application.Current is App app && app.TopWindow is not null && !string.IsNullOrWhiteSpace(link))
+                if (!string.IsNullOrWhiteSpace(link))
                 {
-                    var clipboard = TopLevel.GetTopLevel(app.TopWindow)?.Clipboard;
-                    if (clipboard is not null)
-                    {
-                        await clipboard.SetTextAsync(link);
-                    }
+                    await _clipboardService.SetTextAsync(link);
                 }
 
                 return Unit.Default;
