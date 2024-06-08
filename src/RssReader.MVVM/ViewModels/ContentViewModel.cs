@@ -63,7 +63,7 @@ public class ContentViewModel : ViewModelBase
             {
                 ItemCategories = _categories.GetByChannelItem(channelItem.Id);
                 SelectedChannelModel = _channelService.GetChannelModel(channelItem.ChannelId);
-                ChannelImageSource = SelectedChannelModel!.ImageSource;
+                ChannelImageSource = SelectedChannelModel?.ImageSource;
                 ItemButtonsViewModel = new ItemButtonsViewModel(channelItem);
                 ItemButtonsViewModel.SelectedChannelItem.WhenAnyValue(x => x.IsRead)
                 .Subscribe(x =>

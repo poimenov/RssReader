@@ -39,11 +39,13 @@ public class IconConverter : IIconConverter
         {
             foreach (var fileIcon in Directory.GetFiles(IconsDirectoryPath))
             {
-                if (AllowedExtensions!.Contains(Path.GetExtension(fileIcon)))
+                var key = Path.GetFileNameWithoutExtension(fileIcon);
+                var isAllowedExtension = AllowedExtensions!.Contains(Path.GetExtension(fileIcon));
+                if (!_icons.ContainsKey(key) && isAllowedExtension)
                 {
                     using (var stream = File.OpenRead(fileIcon))
                     {
-                        _icons.Add(Path.GetFileNameWithoutExtension(fileIcon), new Bitmap(stream));
+                        _icons.Add(key, new Bitmap(stream));
                     }
                 }
             }
