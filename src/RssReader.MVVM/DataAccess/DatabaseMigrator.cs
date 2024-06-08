@@ -20,6 +20,11 @@ public class DatabaseMigrator : IDatabaseMigrator
     }
     public void MigrateDatabase()
     {
+        if (!Directory.Exists(_settings.AppDataPath))
+        {
+            Directory.CreateDirectory(_settings.AppDataPath);
+        }
+
         var path = Path.Combine(_settings.AppDataPath, Database.DB_FILE_NAME);
         if (!File.Exists(path))
         {
