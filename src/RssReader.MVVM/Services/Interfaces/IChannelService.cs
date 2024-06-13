@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using RssReader.MVVM.Converters;
 using RssReader.MVVM.Models;
 
 namespace RssReader.MVVM.Services.Interfaces;
@@ -17,4 +18,5 @@ public interface IChannelService
     int GetStarredCount();
     int GetReadLaterCount();
     int GetChannelUnreadCount(int channelId);
+    IIconConverter iconConverter { get; }
 }

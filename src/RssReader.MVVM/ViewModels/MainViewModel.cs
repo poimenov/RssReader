@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using log4net;
 using Microsoft.Extensions.Options;
 using ReactiveUI;
-using RssReader.MVVM.DataAccess;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -43,7 +42,7 @@ public class MainViewModel : ViewModelBase
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
 
-        SelectedItemsViewModel = new ItemsViewModel(new ChannelItems(), _channelReader)
+        SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader, _channelService.iconConverter)
         {
             PaneCommand = TriggerPaneCommand
         };
@@ -61,7 +60,7 @@ public class MainViewModel : ViewModelBase
             .Where(x => x != null)
             .Subscribe(x =>
             {
-                SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader)
+                SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader, _channelService.iconConverter)
                 {
                     ChannelModel = x,
                     AllChannels = TreeViewModel.GetChannelsForUpdate(),

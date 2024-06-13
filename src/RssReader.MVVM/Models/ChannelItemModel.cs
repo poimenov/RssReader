@@ -3,14 +3,17 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Web;
+using Avalonia.Media.Imaging;
 using ReactiveUI;
+using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess.Models;
 
 namespace RssReader.MVVM.Models;
 
 public class ChannelItemModel : ReactiveObject
 {
-    public ChannelItemModel(ChannelItem? channelItem)
+    private readonly IIconConverter? _iconConverter;
+    public ChannelItemModel(ChannelItem? channelItem, IIconConverter iconConverter)
     {
         if (channelItem == null)
         {
@@ -39,13 +42,16 @@ public class ChannelItemModel : ReactiveObject
         {
             Categories = channelItem.ItemCategories.Select(x => new KeyValuePair<int, string>(x.CategoryId, x.Category.Name)).ToList();
         }
+
+        _iconConverter = iconConverter;
+        UpdateImageSource();
     }
     public long Id { get; set; }
     public int ChannelId { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? ShortDescription => string.IsNullOrWhiteSpace(Description) ? string.Empty : CleanHtml(HttpUtility.HtmlDecode(Description));
-    private string _content;
+    private string? _content;
     public string? Content
     {
         get => $"<body>{_content}</body>";
@@ -55,6 +61,22 @@ public class ChannelItemModel : ReactiveObject
     public string? PublishingDate { get; set; }
     public string? ChannelTitle { get; set; }
     public string? ChannelLink { get; set; }
+
+    private Bitmap? _imageSource;
+    public Bitmap? ImageSource
+    {
+        get => _imageSource;
+        set => this.RaiseAndSetIfChanged(ref _imageSource, value);
+    }
+
+    public void UpdateImageSource()
+    {
+        if (_iconConverter != null && (!string.IsNullOrEmpty(Link) || !string.IsNullOrEmpty(ChannelLink)))
+        {
+            var host = new Uri(string.IsNullOrEmpty(ChannelLink) ? Link : ChannelLink).Host;
+            ImageSource = _iconConverter.GetImageByChannelHost(host);
+        }
+    }
 
     private bool _isRead;
     public bool IsRead

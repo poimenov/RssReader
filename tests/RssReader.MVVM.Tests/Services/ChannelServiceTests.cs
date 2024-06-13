@@ -654,7 +654,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockChannels = new Mock<IChannels>();
             var mockChannelItems = new Mock<IChannelItems>();
             var channelItem = ChannelItem;
-            var channelItemModel = new ChannelItemModel(channelItem)
+            var channelItemModel = new ChannelItemModel(channelItem, mockIconConverter.Object)
             {
                 IsRead = true
             };
@@ -679,7 +679,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockChannels = new Mock<IChannels>();
             var mockChannelItems = new Mock<IChannelItems>();
             var channelItem = ChannelItem;
-            var channelItemModel = new ChannelItemModel(channelItem)
+            var channelItemModel = new ChannelItemModel(channelItem, mockIconConverter.Object)
             {
                 IsFavorite = true
             };
@@ -704,7 +704,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockChannels = new Mock<IChannels>();
             var mockChannelItems = new Mock<IChannelItems>();
             var channelItem = ChannelItem;
-            var channelItemModel = new ChannelItemModel(channelItem)
+            var channelItemModel = new ChannelItemModel(channelItem, mockIconConverter.Object)
             {
                 IsReadLater = true
             };
@@ -729,7 +729,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockChannels = new Mock<IChannels>();
             var mockChannelItems = new Mock<IChannelItems>();
             var channelItem = ChannelItem;
-            var channelItemModel = new ChannelItemModel(channelItem)
+            var channelItemModel = new ChannelItemModel(channelItem, mockIconConverter.Object)
             {
                 IsDeleted = true
             };

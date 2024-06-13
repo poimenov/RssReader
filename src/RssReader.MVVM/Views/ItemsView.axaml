@@ -62,8 +62,11 @@
                         <StackPanel Margin="5" HorizontalAlignment="Stretch">
                             <TextBlock Text="{Binding PublishingDate}" FontStyle="Italic" 
                                        Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}" />
-                            <TextBlock Text="{Binding ChannelTitle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontStyle="Italic" 
-                                       Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"/>
+                            <StackPanel Orientation="Horizontal">
+                                <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="16" Height="16" Source="{Binding ImageSource}" />
+                                <TextBlock Text="{Binding ChannelTitle}" HorizontalAlignment="Stretch" TextWrapping="Wrap" FontStyle="Italic" 
+                                           Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"/>
+                            </StackPanel>
                             <TextBlock Text="{Binding Title}" FontWeight="Bold" TextWrapping="Wrap" HorizontalAlignment="Stretch"
                                        Classes.IsRead="{Binding IsRead}" Classes.NotRead="{Binding !IsRead}"/>
                             <TextBlock Text="{Binding ShortDescription}" TextWrapping="Wrap" HorizontalAlignment="Stretch" 

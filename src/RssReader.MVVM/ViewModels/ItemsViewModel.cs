@@ -13,6 +13,7 @@ using RssReader.MVVM.Services.Interfaces;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
+using RssReader.MVVM.Converters;
 
 namespace RssReader.MVVM.ViewModels;
 
@@ -20,10 +21,12 @@ public class ItemsViewModel : ViewModelBase
 {
     private readonly IChannelItems _channelItems;
     private readonly IChannelReader _channelReader;
-    public ItemsViewModel(IChannelItems channelItems, IChannelReader channelReader)
+    private readonly IIconConverter _iconConverter;
+    public ItemsViewModel(IChannelItems channelItems, IChannelReader channelReader, IIconConverter iconConverter)
     {
         _channelItems = channelItems;
         _channelReader = channelReader;
+        _iconConverter = iconConverter;
         MarkAsReadCommand = CreateMarkAsReadCommand();
         RefreshCommand = CreateRefreshCommand();
 
@@ -74,7 +77,7 @@ public class ItemsViewModel : ViewModelBase
             }
 
             SourceItems.Clear();
-            SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+            SourceItems.Load(items.Select(x => new ChannelItemModel(x, _iconConverter)));
         }
     }
 
@@ -89,7 +92,7 @@ public class ItemsViewModel : ViewModelBase
             }
             var items = _channelItems.GetByCategory(category.Id);
             SourceItems.Clear();
-            SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+            SourceItems.Load(items.Select(x => new ChannelItemModel(x, _iconConverter)));
         }
     }
 
@@ -195,7 +198,7 @@ public class ItemsViewModel : ViewModelBase
                         items = _channelItems.GetByRead(false);
                     }
 
-                    SourceItems.Load(items.Select(x => new ChannelItemModel(x)));
+                    SourceItems.Load(items.Select(x => new ChannelItemModel(x, _iconConverter)));
                 }
             }, this.WhenAnyValue(x => x.ChannelModel, (m) => m is not null &&
                         m.ModelType != ChannelModelType.Starred && m.ModelType != ChannelModelType.ReadLater)

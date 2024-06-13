@@ -69,11 +69,14 @@ public class ContentViewModel : ViewModelBase
                 .Subscribe(x =>
                 {
                     _channelService.UpdateChannelItem(channelItem);
-                    var count = _channelService.GetChannelUnreadCount(SelectedChannelModel.Id);
-                    if (SelectedChannelModel.UnreadItemsCount != count)
+                    if (SelectedChannelModel is not null)
                     {
-                        SelectedChannelModel.UnreadItemsCount = count;
-                        UnreadItemsCountChanged = !UnreadItemsCountChanged;
+                        var count = _channelService.GetChannelUnreadCount(SelectedChannelModel.Id);
+                        if (SelectedChannelModel.UnreadItemsCount != count)
+                        {
+                            SelectedChannelModel.UnreadItemsCount = count;
+                            UnreadItemsCountChanged = !UnreadItemsCountChanged;
+                        }
                     }
                 });
                 channelItem.IsRead = true;

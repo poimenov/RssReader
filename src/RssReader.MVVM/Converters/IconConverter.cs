@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using Avalonia.Media.Imaging;
@@ -57,21 +56,6 @@ public class IconConverter : IIconConverter
         _readLaterIcon = _icons[ChannelModelType.ReadLater.ToString()];
     }
 
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        if (value is ChannelModel channel)
-        {
-            return GetImageByChannelModel(channel);
-        }
-
-        return _defaultIcon;
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
-    }
-
     public Bitmap? GetImageByChannelModel(ChannelModel channelModel)
     {
         var retVal = _defaultIcon;
@@ -111,6 +95,34 @@ public class IconConverter : IIconConverter
                     }
                 }
                 break;
+        }
+
+        return retVal;
+    }
+
+    public Bitmap? GetImageByChannelHost(string? host)
+    {
+        var retVal = _defaultIcon;
+        if (!string.IsNullOrWhiteSpace(host))
+        {
+            if (_icons.ContainsKey(host))
+            {
+                retVal = _icons[host];
+            }
+            else if (Directory.Exists(IconsDirectoryPath))
+            {
+                var files = Directory.GetFiles(IconsDirectoryPath, host);
+                if (files.Any() && AllowedExtensions!.Contains(Path.GetExtension(files.First())))
+                {
+                    var fileIcon = files.First();
+                    using (var stream = File.OpenRead(fileIcon))
+                    {
+                        var img = new Bitmap(stream);
+                        _icons.Add(host, img);
+                        retVal = img;
+                    }
+                }
+            }
         }
 
         return retVal;

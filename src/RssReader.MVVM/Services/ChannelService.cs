@@ -17,6 +17,8 @@ public class ChannelService : IChannelService
     private readonly IChannelItems _channelItems;
     private readonly IIconConverter _iconConverter;
 
+    public IIconConverter iconConverter => _iconConverter;
+
     public ChannelService(IChannelsGroups channelsGroups, IChannels channels, IChannelItems channelItems, IIconConverter iconConverter)
     {
         _channelsGroups = channelsGroups;
@@ -168,7 +170,7 @@ public class ChannelService : IChannelService
 
     public ChannelItemModel GetChannelItem(long channelItemId)
     {
-        return new ChannelItemModel(_channelItems.Get(channelItemId));
+        return new ChannelItemModel(_channelItems.Get(channelItemId), _iconConverter);
     }
 
     public void UpdateChannelItem(ChannelItemModel channelItem)
