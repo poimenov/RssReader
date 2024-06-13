@@ -13,7 +13,6 @@ using RssReader.MVVM.Services.Interfaces;
 using System.Threading.Tasks;
 using Avalonia.Media.Imaging;
 using Avalonia.Platform;
-using RssReader.MVVM.Converters;
 
 namespace RssReader.MVVM.ViewModels;
 

@@ -1,9 +1,9 @@
 using Moq;
-using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services;
+using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.Tests.Services
 {

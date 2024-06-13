@@ -4,7 +4,6 @@ using Avalonia.Threading;
 using log4net;
 using Microsoft.Extensions.Options;
 using Moq;
-using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;

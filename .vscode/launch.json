@@ -1,11 +1,18 @@
 {
     "configurations": [
         {
-            "name": "C#: RssReader.MVVM",
-            "type": "dotnet",
+            "name": ".NET Core Launch (console)",
+            "type": "coreclr",
             "request": "launch",
-            "projectPath": "${workspaceFolder}/src/RssReader.MVVM/RssReader.MVVM.csproj",
-            "launchConfigurationId": "TargetFramework=;RssReader.MVVM"
+            "preLaunchTask":{
+                "task": "build",
+                "type": "msbuild"
+            },
+            "program": "${workspaceFolder}/src/RssReader.MVVM/bin/Debug/net7.0/RssReader.MVVM.dll",
+            "args": [],
+            "cwd": "${workspaceFolder}",
+            "stopAtEntry": false,
+            "console": "internalConsole"
         }
     ]
 }

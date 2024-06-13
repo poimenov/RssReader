@@ -5,8 +5,8 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
-using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess.Models;
+using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.Models;
 

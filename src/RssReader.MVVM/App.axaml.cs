@@ -12,7 +12,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MsBox.Avalonia.Enums;
-using RssReader.MVVM.Converters;
 using RssReader.MVVM.DataAccess;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.Extensions;
@@ -76,8 +75,8 @@ public partial class App : Application
                 .AddTransient<IChannels, Channels>()
                 .AddTransient<IChannelItems, ChannelItems>()
                 .AddTransient<ICategories, Categories>()
-                .AddTransient<IIconConverter, IconConverter>()
                 //services
+                .AddTransient<IIconConverter, IconConverter>()
                 .AddTransient<IThemeService, ThemeService>()
                 .AddTransient<IFilePickerService, FilePickerService>()
                 .AddTransient<IClipboardService, ClipboardService>()

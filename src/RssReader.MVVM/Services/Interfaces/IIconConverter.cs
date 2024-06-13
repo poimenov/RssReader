@@ -1,7 +1,7 @@
 using Avalonia.Media.Imaging;
 using RssReader.MVVM.Models;
 
-namespace RssReader.MVVM.Converters;
+namespace RssReader.MVVM.Services.Interfaces;
 
 public interface IIconConverter
 {

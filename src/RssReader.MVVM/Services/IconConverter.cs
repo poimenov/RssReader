@@ -6,8 +6,9 @@ using Avalonia.Media.Imaging;
 using Avalonia.Platform;
 using Microsoft.Extensions.Options;
 using RssReader.MVVM.Models;
+using RssReader.MVVM.Services.Interfaces;
 
-namespace RssReader.MVVM.Converters;
+namespace RssReader.MVVM.Services;
 
 public class IconConverter : IIconConverter
 {

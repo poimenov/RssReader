@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
-using RssReader.MVVM.Converters;
+using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.Models;
 

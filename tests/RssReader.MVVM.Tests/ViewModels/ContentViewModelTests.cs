@@ -12,7 +12,6 @@ using Avalonia.Themes.Fluent;
 using Avalonia.Media;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Models;
-using RssReader.MVVM.Converters;
 using System.Reflection;
 using Avalonia.Media.Imaging;
 using Avalonia.Headless.XUnit;

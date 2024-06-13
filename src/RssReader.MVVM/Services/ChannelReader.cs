@@ -87,7 +87,6 @@ public class ChannelReader : IChannelReader
                     siteUri = new Uri(siteLink);
                 }
 
-                Debug.WriteLine($"Start download icon url = {siteLink}");
                 await DownloadIconAsync(imageUri, siteUri, cancellationToken);
 
                 lock (_locker)
