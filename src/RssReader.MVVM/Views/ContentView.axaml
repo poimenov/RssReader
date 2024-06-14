@@ -58,7 +58,11 @@
             
             <Panel>
                 <StackPanel Margin="0 5" Orientation="Horizontal">
-                    <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="24" Height="24" Source="{Binding ChannelImageSource}" />
+                    <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="24" Height="24" Source="{Binding ChannelImageSource}">
+                        <ToolTip.Tip>
+                            <Image Margin="0 0 4 0" VerticalAlignment="Center" Width="{Binding ChannelImageSource.Size.Width}" Height="{Binding ChannelImageSource.Size.Height}" Source="{Binding ChannelImageSource}" />
+                        </ToolTip.Tip>
+                    </Image>
                     <Button Classes="link" Margin="0 5" FontStyle="Italic"
                             VerticalAlignment="Center" HorizontalAlignment="Stretch"
                             Content="{Binding SelectedChannelItem.ChannelTitle}"
