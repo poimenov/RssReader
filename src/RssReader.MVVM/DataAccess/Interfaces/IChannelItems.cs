@@ -13,7 +13,7 @@ public interface IChannelItems
     void SetFavorite(long id, bool isFavorite);
     void SetDeleted(long id, bool isDeleted);
     void SetReadLater(long id, bool isReadLater);
-    void Delete(long id);
+    void Delete();
     ChannelItem? Get(long id);
     IEnumerable<ChannelItem> GetByChannelId(int channelId);
     IEnumerable<ChannelItem> GetByGroupId(int groupId);

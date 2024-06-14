@@ -18,32 +18,40 @@ public class ChannelItems : IChannelItems
             {
                 using (var transaction = db.Database.BeginTransaction())
                 {
-                    db.ChannelItems.Add(channelItem);
-                    db.SaveChanges();
-
-                    foreach (var category in categories.Select(x => x.Trim().ToLower()).Distinct())
+                    try
                     {
-                        var cat = db.Categories.FirstOrDefault(x => x.Name == category);
-                        if (cat == null)
+                        db.ChannelItems.Add(channelItem);
+                        db.SaveChanges();
+
+                        foreach (var category in categories.Select(x => x.Trim().ToLower()).Distinct())
                         {
-                            cat = new Category
+                            var cat = db.Categories.FirstOrDefault(x => x.Name == category);
+                            if (cat == null)
                             {
-                                Name = category
+                                cat = new Category
+                                {
+                                    Name = category
+                                };
+                                db.Categories.Add(cat);
+                                db.SaveChanges();
+                            }
+
+                            var itemCat = new ItemCategory
+                            {
+                                CategoryId = cat.Id,
+                                ChannelItemId = channelItem.Id
                             };
-                            db.Categories.Add(cat);
-                            db.SaveChanges();
+                            db.ItemCategories.Add(itemCat);
                         }
 
-                        var itemCat = new ItemCategory
-                        {
-                            CategoryId = cat.Id,
-                            ChannelItemId = channelItem.Id
-                        };
-                        db.ItemCategories.Add(itemCat);
+                        db.SaveChanges();
+                        transaction.Commit();
                     }
-
-                    db.SaveChanges();
-                    transaction.Commit();
+                    catch (System.Exception)
+                    {
+                        transaction.Rollback();
+                        throw;
+                    }
                 }
 
                 return channelItem.Id;
@@ -53,27 +61,26 @@ public class ChannelItems : IChannelItems
         }
     }
 
-    public void Delete(long id)
+    public void Delete()
     {
         using (var db = new Database())
         {
-            if (db.ChannelItems.Any(x => x.Id == id))
+            using (var transaction = db.Database.BeginTransaction())
             {
-                using (var transaction = db.Database.BeginTransaction())
+                try
                 {
-                    if (db.ItemCategories.Any(x => x.ChannelItemId == id))
-                    {
-                        var itemCats = db.ItemCategories.Where(x => x.ChannelItemId == id);
-                        foreach (var itemCat in itemCats)
-                        {
-                            db.ItemCategories.Remove(itemCat);
-                        }
-                    }
-
-                    var item = db.ChannelItems.First(x => x.Id == id);
-                    db.ChannelItems.Remove(item);
-                    db.SaveChanges();
+                    var where = " [IsDeleted] = 1 AND ([PublishingDate] IS NULL OR [PublishingDate] < date('now','-1 month')";
+                    FormattableString sql = $@"DELETE FROM [ItemCategories] WHERE [ChannelItemId] IN 
+                    ( SELECT [Id] FROM [ChannelItems] WHERE {where} )";
+                    db.Database.ExecuteSql(sql);
+                    sql = $"DELETE FROM [ChannelItems] WHERE {where}";
+                    db.Database.ExecuteSql(sql);
                     transaction.Commit();
+                }
+                catch (System.Exception)
+                {
+                    transaction.Rollback();
+                    throw;
                 }
             }
         }

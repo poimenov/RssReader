@@ -42,6 +42,22 @@ public class ItemsViewModel : ViewModelBase
             {
                 LoadItems();
             });
+
+        this.WhenAnyValue(x => x.SelectedChannelItem)
+            .WhereNotNull()
+            .Subscribe(channelItem =>
+            {
+                channelItem.WhenAnyValue(x => x.IsDeleted)
+                    .Subscribe(isDeleted =>
+                    {
+                        if (isDeleted)
+                        {
+                            var index = Items.IndexOf(channelItem);
+                            SourceItems.Remove(channelItem);
+                            SelectedChannelItem = Items.ElementAt(index);
+                        }
+                    });
+            });
     }
 
     public void LoadItems()

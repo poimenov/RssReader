@@ -137,6 +137,11 @@ public class MainViewModel : ViewModelBase
         });
     }
 
+    public void DeleteChannelItems()
+    {
+        _channelItems.Delete();
+    }
+
     private bool _isPaneOpen;
     public bool IsPaneOpen
     {

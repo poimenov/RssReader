@@ -105,6 +105,14 @@ public partial class App : Application
                 RequestedThemeVariant = Settings.GetTheme();
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
                 desktop.MainWindow = this.TopWindow;
+                desktop.MainWindow.Closing += (s, e) =>
+                {
+                    var vm = desktop.MainWindow.DataContext as MainViewModel;
+                    if (vm != null)
+                    {
+                        vm.DeleteChannelItems();
+                    }
+                };
                 desktop.ShutdownRequested += OnShutdownRequested;
                 _ = _host.StartAsync(_cancellationTokenSource.Token);
             }
