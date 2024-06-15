@@ -54,7 +54,10 @@ public class ItemsViewModel : ViewModelBase
                         {
                             var index = Items.IndexOf(channelItem);
                             SourceItems.Remove(channelItem);
-                            SelectedChannelItem = Items.ElementAt(index);
+                            if (index > 0 && index < Items.Count)
+                            {
+                                SelectedChannelItem = Items.ElementAt(index);
+                            }
                         }
                     });
             });
