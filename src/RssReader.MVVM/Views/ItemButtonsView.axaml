@@ -58,13 +58,6 @@
                 <Image Classes="isTrue" Source="{SvgImage /Assets/flag-location-map-yellow-pin-pointer-svgrepo-com.svg}"/>
             </Panel>
         </ToggleButton>    
-        <ToggleButton IsChecked="{Binding SelectedChannelItem.IsDeleted}" ToolTip.Tip="{Binding IsDeletedToolTip}"
-                      Command="{Binding ToggleDeleteCommand}" CommandParameter="{Binding SelectedChannelItem.IsDeleted}">
-            <Panel>
-                <Image Classes="isFalse" Source="{SvgImage /Assets/cancel-delete-minus-remove-svgrepo-com.svg}"/>
-                <Image Classes="isTrue" Source="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}"/>                
-            </Panel>
-        </ToggleButton>                       
     </StackPanel>
     
 </UserControl>             

@@ -30,6 +30,7 @@ public class ContentViewModel : ViewModelBase
         OpenLinkCommand = CreateOpenLinkCommand();
         CopyLinkCommand = CreateCopyLinkCommand();
         ViewPostsCommand = CreateViewPostsCommand();
+        DeleteCommand = CreateDeleteCommand();
 
         _themeService.WhenAnyValue(x => x.RequestedThemeVariant)
         .Subscribe(x =>
@@ -89,19 +90,6 @@ public class ContentViewModel : ViewModelBase
                 ItemButtonsViewModel.SelectedChannelItem.WhenAnyValue(x => x.IsReadLater)
                 .Subscribe(x =>
                 {
-                    _channelService.UpdateChannelItem(channelItem);
-                    ReadLaterCount = _channelService.GetReadLaterCount();
-                });
-                ItemButtonsViewModel.SelectedChannelItem.WhenAnyValue(x => x.IsDeleted)
-                .Subscribe(x =>
-                {
-                    if (x)
-                    {
-                        channelItem.IsRead = x;
-                        channelItem.IsFavorite = !x;
-                        channelItem.IsReadLater = !x;
-                    }
-
                     _channelService.UpdateChannelItem(channelItem);
                     ReadLaterCount = _channelService.GetReadLaterCount();
                 });
@@ -241,5 +229,23 @@ public class ContentViewModel : ViewModelBase
             }, this.WhenAnyValue(x => x.SearchCategories, x => x is not null &&
                 !string.IsNullOrEmpty(SearchName) && x.Any(x => x.Name.ToLower() == SearchName.ToLower()))
         );
+    }
+
+    public IReactiveCommand DeleteCommand { get; }
+    private IReactiveCommand CreateDeleteCommand()
+    {
+        return ReactiveCommand.Create(() =>
+        {
+            if (SelectedChannelItem != null)
+            {
+                SelectedChannelItem.IsRead = true;
+                SelectedChannelItem.IsFavorite = false;
+                SelectedChannelItem.IsReadLater = false;
+                SelectedChannelItem.IsDeleted = true;
+                _channelService.UpdateChannelItem(SelectedChannelItem);
+                ReadLaterCount = _channelService.GetReadLaterCount();
+                StarredCount = _channelService.GetStarredCount();
+            }
+        });
     }
 }

@@ -41,7 +41,7 @@
     </UserControl.Styles>              
     
     <Grid RowDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch">        
-        <StackPanel Grid.Row="0" Margin="5" Orientation="Vertical">            
+        <StackPanel Grid.Row="0" Margin="20,5,20,5" Orientation="Vertical">            
             <Button Classes="link" FontSize="20" FontWeight="Bold" 
                     Content="{Binding SelectedChannelItem.Title}" 
                     CommandParameter="{Binding SelectedChannelItem.Link}"
@@ -80,7 +80,12 @@
                     <TextBlock Text="/" Margin="10,0,10,0" VerticalAlignment="Center" />
                     <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" VerticalAlignment="Center" FontStyle="Italic" />                
                 </StackPanel> 
-                <vw:ItemButtonsView  HorizontalAlignment="Right" DataContext="{Binding ItemButtonsViewModel}" />
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <vw:ItemButtonsView  DataContext="{Binding ItemButtonsViewModel}" />
+                    <Button Width="24" Height="24" Background="Transparent" Padding="0" 
+                            Command="{Binding DeleteCommand}" ToolTip.Tip="Delete (Ctrl+Delete)"
+                            Content="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}" HotKey="Ctrl+Delete" />
+                </StackPanel>
             </Panel>            
         </StackPanel>          
         
