@@ -71,11 +71,12 @@ public class ContentViewModel : ViewModelBase
             .WhereNotNull()
             .Subscribe(channelItem =>
             {
-                UpdateToolTip();
                 ItemCategories = _categories.GetByChannelItem(channelItem.Id);
                 SelectedChannelModel = _channelService.GetChannelModel(channelItem.ChannelId);
                 ChannelImageSource = SelectedChannelModel?.ImageSource;
                 channelItem.IsRead = true;
+                var command = ToggleReadCommand as ReactiveCommand<Unit, Unit>;
+                command?.Execute(Unit.Default).Subscribe();
             });
     }
 
@@ -249,11 +250,10 @@ public class ContentViewModel : ViewModelBase
     public IReactiveCommand ToggleReadCommand { get; }
     private IReactiveCommand CreateToggleReadCommand()
     {
-        return ReactiveCommand.Create<bool, Unit>((isRead) =>
+        return ReactiveCommand.Create(() =>
         {
             if (SelectedChannelItem != null)
             {
-                SelectedChannelItem.IsRead = isRead;
                 _channelService.UpdateChannelItem(SelectedChannelItem);
                 if (SelectedChannelModel is not null)
                 {
@@ -264,42 +264,35 @@ public class ContentViewModel : ViewModelBase
                         UnreadItemsCountChanged = !UnreadItemsCountChanged;
                     }
                 }
+
                 UpdateToolTip();
             }
-
-            return Unit.Default;
         });
     }
     public IReactiveCommand ToggleFavoriteCommand { get; }
     private IReactiveCommand CreateToggleFavoriteCommand()
     {
-        return ReactiveCommand.Create<bool, Unit>((isFavorite) =>
+        return ReactiveCommand.Create(() =>
         {
             if (SelectedChannelItem != null)
             {
-                SelectedChannelItem.IsFavorite = isFavorite;
                 _channelService.UpdateChannelItem(SelectedChannelItem);
                 StarredCount = _channelService.GetStarredCount();
                 UpdateToolTip();
             }
-
-            return Unit.Default;
         });
     }
     public IReactiveCommand ToggleReadLaterCommand { get; }
     private IReactiveCommand CreateToggleReadLaterCommand()
     {
-        return ReactiveCommand.Create<bool, Unit>((isReadLater) =>
+        return ReactiveCommand.Create(() =>
         {
             if (SelectedChannelItem != null)
             {
-                SelectedChannelItem.IsReadLater = isReadLater;
                 _channelService.UpdateChannelItem(SelectedChannelItem);
                 ReadLaterCount = _channelService.GetReadLaterCount();
                 UpdateToolTip();
             }
-
-            return Unit.Default;
         });
     }
 

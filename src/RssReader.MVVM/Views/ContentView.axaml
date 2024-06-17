@@ -108,21 +108,21 @@
                 </StackPanel> 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <ToggleButton Classes="main" IsChecked="{Binding SelectedChannelItem.IsRead}" ToolTip.Tip="{Binding IsReadToolTip}" 
-                                  HotKey="Ctrl+R"  Command="{Binding ToggleReadCommand}" CommandParameter="{Binding SelectedChannelItem.IsRead}">
+                                  Command="{Binding ToggleReadCommand}">
                         <Panel>
                             <Image Classes="isFalse" Source="{SvgImage /Assets/accept-check-good-mark-ok-yellow-svgrepo-com.svg}"/>
                             <Image Classes="isTrue" Source="{SvgImage /Assets/accept-check-good-mark-ok-tick-svgrepo-com.svg}"/>
                         </Panel>
                     </ToggleButton>    
                     <ToggleButton Classes="main" IsChecked="{Binding SelectedChannelItem.IsFavorite}" ToolTip.Tip="{Binding IsFavoriteToolTip}" 
-                                  Command="{Binding ToggleFavoriteCommand}" CommandParameter="{Binding SelectedChannelItem.IsFavorite}">
+                                  Command="{Binding ToggleFavoriteCommand}">
                         <Panel>
                             <Image Classes="isFalse" Source="{SvgImage /Assets/bookmark-favorite-rating-star-svgrepo-com.svg}"/>
                             <Image Classes="isTrue" Source="{SvgImage /Assets/favorite-no-rating-star-svgrepo-com.svg}"/>
                         </Panel>
                     </ToggleButton>  
                     <ToggleButton Classes="main" IsChecked="{Binding SelectedChannelItem.IsReadLater}" ToolTip.Tip="{Binding IsReadLaterToolTip}" 
-                                  Command="{Binding ToggleReadLaterCommand}" CommandParameter="{Binding SelectedChannelItem.IsReadLater}">
+                                  Command="{Binding ToggleReadLaterCommand}">
                         <Panel>
                             <Image Classes="isFalse" Source="{SvgImage /Assets/flag-location-map-marker-pin-pointer-svgrepo-com.svg}"/>
                             <Image Classes="isTrue" Source="{SvgImage /Assets/flag-location-map-yellow-pin-pointer-svgrepo-com.svg}"/>
