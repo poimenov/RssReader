@@ -244,7 +244,7 @@ public class ContentViewModel : ViewModelBase
                 ReadLaterCount = _channelService.GetReadLaterCount();
                 StarredCount = _channelService.GetStarredCount();
             }
-        });
+        }, this.WhenAnyValue(x => x.SelectedChannelItem, x => x is not null && x.IsDeleted == false));
     }
 
     public IReactiveCommand ToggleReadCommand { get; }
@@ -267,7 +267,7 @@ public class ContentViewModel : ViewModelBase
 
                 UpdateToolTip();
             }
-        });
+        }, this.WhenAnyValue(x => x.SelectedChannelItem, x => x is not null && x.IsDeleted == false));
     }
     public IReactiveCommand ToggleFavoriteCommand { get; }
     private IReactiveCommand CreateToggleFavoriteCommand()
@@ -280,7 +280,7 @@ public class ContentViewModel : ViewModelBase
                 StarredCount = _channelService.GetStarredCount();
                 UpdateToolTip();
             }
-        });
+        }, this.WhenAnyValue(x => x.SelectedChannelItem, x => x is not null && x.IsDeleted == false));
     }
     public IReactiveCommand ToggleReadLaterCommand { get; }
     private IReactiveCommand CreateToggleReadLaterCommand()
@@ -293,7 +293,7 @@ public class ContentViewModel : ViewModelBase
                 ReadLaterCount = _channelService.GetReadLaterCount();
                 UpdateToolTip();
             }
-        });
+        }, this.WhenAnyValue(x => x.SelectedChannelItem, x => x is not null && x.IsDeleted == false));
     }
 
     private void UpdateToolTip()
