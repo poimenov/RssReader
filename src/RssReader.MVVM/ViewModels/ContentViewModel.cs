@@ -15,12 +15,12 @@ namespace RssReader.MVVM.ViewModels;
 
 public class ContentViewModel : ViewModelBase
 {
-    private const string IS_READ_TRUE = "Mark as unread (Ctrl+R)";
-    private const string IS_READ_FALSE = "Mark as read (Ctrl+R)";
-    private const string IS_FAVORITE_TRUE = "Remove from favorites (Ctrl+Delete)";
-    private const string IS_FAVORITE_FALSE = "Add to favorites (Ctrl+Delete)";
-    private const string IS_READ_LATER_TRUE = "Remove from read later (Ctrl+L)";
-    private const string IS_READ_LATER_FALSE = "Add to read later (Ctrl+L)";
+    private const string IS_READ_TRUE = "Mark as unread";
+    private const string IS_READ_FALSE = "Mark as read";
+    private const string IS_FAVORITE_TRUE = "Remove from favorites";
+    private const string IS_FAVORITE_FALSE = "Add to favorites";
+    private const string IS_READ_LATER_TRUE = "Remove from read later";
+    private const string IS_READ_LATER_FALSE = "Add to read later";
 
     private readonly IChannelService _channelService;
     private readonly ICategories _categories;
@@ -34,7 +34,6 @@ public class ContentViewModel : ViewModelBase
         _linkOpeningService = linkOpeningService;
         _clipboardService = clipboardService;
         _themeService = themeService;
-        UpdateToolTip();
         ToggleReadCommand = CreateToggleReadCommand();
         ToggleFavoriteCommand = CreateToggleFavoriteCommand();
         ToggleReadLaterCommand = CreateToggleReadLaterCommand();
@@ -72,6 +71,7 @@ public class ContentViewModel : ViewModelBase
             .WhereNotNull()
             .Subscribe(channelItem =>
             {
+                UpdateToolTip();
                 ItemCategories = _categories.GetByChannelItem(channelItem.Id);
                 SelectedChannelModel = _channelService.GetChannelModel(channelItem.ChannelId);
                 ChannelImageSource = SelectedChannelModel?.ImageSource;
@@ -249,11 +249,11 @@ public class ContentViewModel : ViewModelBase
     public IReactiveCommand ToggleReadCommand { get; }
     private IReactiveCommand CreateToggleReadCommand()
     {
-        return ReactiveCommand.Create(() =>
+        return ReactiveCommand.Create<bool, Unit>((isRead) =>
         {
             if (SelectedChannelItem != null)
             {
-                SelectedChannelItem.IsRead = !SelectedChannelItem.IsRead;
+                SelectedChannelItem.IsRead = isRead;
                 _channelService.UpdateChannelItem(SelectedChannelItem);
                 if (SelectedChannelModel is not null)
                 {
@@ -266,34 +266,40 @@ public class ContentViewModel : ViewModelBase
                 }
                 UpdateToolTip();
             }
+
+            return Unit.Default;
         });
     }
     public IReactiveCommand ToggleFavoriteCommand { get; }
     private IReactiveCommand CreateToggleFavoriteCommand()
     {
-        return ReactiveCommand.Create(() =>
+        return ReactiveCommand.Create<bool, Unit>((isFavorite) =>
         {
             if (SelectedChannelItem != null)
             {
-                SelectedChannelItem.IsFavorite = !SelectedChannelItem.IsFavorite;
+                SelectedChannelItem.IsFavorite = isFavorite;
                 _channelService.UpdateChannelItem(SelectedChannelItem);
                 StarredCount = _channelService.GetStarredCount();
                 UpdateToolTip();
             }
+
+            return Unit.Default;
         });
     }
     public IReactiveCommand ToggleReadLaterCommand { get; }
     private IReactiveCommand CreateToggleReadLaterCommand()
     {
-        return ReactiveCommand.Create(() =>
+        return ReactiveCommand.Create<bool, Unit>((isReadLater) =>
         {
             if (SelectedChannelItem != null)
             {
-                SelectedChannelItem.IsReadLater = !SelectedChannelItem.IsReadLater;
+                SelectedChannelItem.IsReadLater = isReadLater;
                 _channelService.UpdateChannelItem(SelectedChannelItem);
                 ReadLaterCount = _channelService.GetReadLaterCount();
                 UpdateToolTip();
             }
+
+            return Unit.Default;
         });
     }
 

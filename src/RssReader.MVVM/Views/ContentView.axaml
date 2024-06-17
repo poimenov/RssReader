@@ -38,7 +38,7 @@
                 </ControlTemplate>
             </Setter>
         </Style>  
-        <Style Selector="ToggleButton">
+        <Style Selector="ToggleButton.main">
             <Setter Property="Width" Value="24"/>
             <Setter Property="Height" Value="24"/>
             <Setter Property="Padding" Value="0"/>
@@ -48,20 +48,20 @@
                 <Setter Property="Background" Value="Transparent" />
             </Style>
         </Style> 
-        <Style Selector="ToggleButton Image">            
+        <Style Selector="ToggleButton.main Image">            
             <Setter Property="VerticalAlignment" Value="Stretch" />
             <Setter Property="HorizontalAlignment" Value="Stretch" />
         </Style>     
-        <Style Selector="ToggleButton Image.isFalse">
+        <Style Selector="ToggleButton.main Image.isFalse">
             <Setter Property="IsVisible" Value="False"/>
         </Style>
-        <Style Selector="ToggleButton:checked Image.isFalse">
+        <Style Selector="ToggleButton.main:checked Image.isFalse">
             <Setter Property="IsVisible" Value="True"/>
         </Style>
-        <Style Selector="ToggleButton Image.isTrue">
+        <Style Selector="ToggleButton.main Image.isTrue">
             <Setter Property="IsVisible" Value="True"/>
         </Style>
-        <Style Selector="ToggleButton:checked Image.isTrue">
+        <Style Selector="ToggleButton.main:checked Image.isTrue">
             <Setter Property="IsVisible" Value="False"/>
         </Style>                       
     </UserControl.Styles>              
@@ -107,22 +107,22 @@
                     <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" VerticalAlignment="Center" FontStyle="Italic" />                
                 </StackPanel> 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <ToggleButton IsChecked="{Binding SelectedChannelItem.IsRead}" ToolTip.Tip="{Binding IsReadToolTip}" 
-                                  HotKey="Ctrl+R" Command="{Binding ToggleReadCommand}">
+                    <ToggleButton Classes="main" IsChecked="{Binding SelectedChannelItem.IsRead}" ToolTip.Tip="{Binding IsReadToolTip}" 
+                                  HotKey="Ctrl+R"  Command="{Binding ToggleReadCommand}" CommandParameter="{Binding SelectedChannelItem.IsRead}">
                         <Panel>
                             <Image Classes="isFalse" Source="{SvgImage /Assets/accept-check-good-mark-ok-yellow-svgrepo-com.svg}"/>
                             <Image Classes="isTrue" Source="{SvgImage /Assets/accept-check-good-mark-ok-tick-svgrepo-com.svg}"/>
                         </Panel>
                     </ToggleButton>    
-                    <ToggleButton IsChecked="{Binding SelectedChannelItem.IsFavorite}" ToolTip.Tip="{Binding IsFavoriteToolTip}" 
-                                  HotKey="Ctrl+F" Command="{Binding ToggleFavoriteCommand}">
+                    <ToggleButton Classes="main" IsChecked="{Binding SelectedChannelItem.IsFavorite}" ToolTip.Tip="{Binding IsFavoriteToolTip}" 
+                                  Command="{Binding ToggleFavoriteCommand}" CommandParameter="{Binding SelectedChannelItem.IsFavorite}">
                         <Panel>
                             <Image Classes="isFalse" Source="{SvgImage /Assets/bookmark-favorite-rating-star-svgrepo-com.svg}"/>
                             <Image Classes="isTrue" Source="{SvgImage /Assets/favorite-no-rating-star-svgrepo-com.svg}"/>
                         </Panel>
                     </ToggleButton>  
-                    <ToggleButton IsChecked="{Binding SelectedChannelItem.IsReadLater}" ToolTip.Tip="{Binding IsReadLaterToolTip}" 
-                                  HotKey="Ctrl+L" Command="{Binding ToggleReadLaterCommand}">
+                    <ToggleButton Classes="main" IsChecked="{Binding SelectedChannelItem.IsReadLater}" ToolTip.Tip="{Binding IsReadLaterToolTip}" 
+                                  Command="{Binding ToggleReadLaterCommand}" CommandParameter="{Binding SelectedChannelItem.IsReadLater}">
                         <Panel>
                             <Image Classes="isFalse" Source="{SvgImage /Assets/flag-location-map-marker-pin-pointer-svgrepo-com.svg}"/>
                             <Image Classes="isTrue" Source="{SvgImage /Assets/flag-location-map-yellow-pin-pointer-svgrepo-com.svg}"/>

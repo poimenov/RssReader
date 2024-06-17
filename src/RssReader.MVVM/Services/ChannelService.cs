@@ -174,6 +174,11 @@ public class ChannelService : IChannelService
 
     public void UpdateChannelItem(ChannelItemModel channelItem)
     {
+        if (channelItem == null || channelItem.Id <= 0)
+        {
+            return;
+        }
+
         var item = _channelItems.Get(channelItem.Id);
         if (item != null)
         {
@@ -197,7 +202,6 @@ public class ChannelService : IChannelService
                 _channelItems.SetDeleted(channelItem.Id, channelItem.IsDeleted);
             }
         }
-
     }
 
     public int GetStarredCount()
