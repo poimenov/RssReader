@@ -150,12 +150,12 @@ public class ContentViewModelTests
 
             //Assert
             var expectedCss = @$"body {{ color: Black;}}
-                div {{ color: Black;}}
-                span {{ color: Black;}}
-                table {{ color: Black;}}
-                b {{ color: Black;}}
-                h1, h2, h3 {{ color: Black; }}
-                p {{ color: Black;}}";
+                    div {{ color: Black;}}
+                    span {{ color: Black;}}
+                    table {{ color: Black;}}
+                    b {{ color: Black;}}
+                    h1, h2, h3 {{ color: Black; }}
+                    p {{ color: Black;}}";
             Assert.Equal(expectedCss, contentViewModel.Css);
             Assert.False(contentViewModel.UnreadItemsCountChanged);
             Assert.Equal(starredCount, contentViewModel.StarredCount);
