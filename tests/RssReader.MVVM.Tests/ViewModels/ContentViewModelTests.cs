@@ -164,7 +164,6 @@ public class ContentViewModelTests
             Assert.Null(contentViewModel.SelectedChannelModel);
             Assert.Null(contentViewModel.ItemsSource);
             Assert.Null(contentViewModel.ChannelImageSource);
-            Assert.Null(contentViewModel.ItemButtonsViewModel);
             Assert.Null(contentViewModel.ItemCategories);
             Assert.Null(contentViewModel.SearchCategories);
             Assert.NotNull(contentViewModel.OpenLinkCommand);

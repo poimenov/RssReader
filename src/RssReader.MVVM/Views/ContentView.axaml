@@ -37,7 +37,33 @@
                     </ContentPresenter>
                 </ControlTemplate>
             </Setter>
-        </Style>               
+        </Style>  
+        <Style Selector="ToggleButton">
+            <Setter Property="Width" Value="24"/>
+            <Setter Property="Height" Value="24"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="2,0,0,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Style Selector="^:checked /template/ ContentPresenter#PART_ContentPresenter">
+                <Setter Property="Background" Value="Transparent" />
+            </Style>
+        </Style> 
+        <Style Selector="ToggleButton Image">            
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+        </Style>     
+        <Style Selector="ToggleButton Image.isFalse">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>
+        <Style Selector="ToggleButton:checked Image.isFalse">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector="ToggleButton Image.isTrue">
+            <Setter Property="IsVisible" Value="True"/>
+        </Style>
+        <Style Selector="ToggleButton:checked Image.isTrue">
+            <Setter Property="IsVisible" Value="False"/>
+        </Style>                       
     </UserControl.Styles>              
     
     <Grid RowDefinitions="Auto,*,Auto" HorizontalAlignment="Stretch">        
@@ -81,7 +107,27 @@
                     <TextBlock Text="{Binding SelectedChannelItem.PublishingDate}" VerticalAlignment="Center" FontStyle="Italic" />                
                 </StackPanel> 
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    <vw:ItemButtonsView  DataContext="{Binding ItemButtonsViewModel}" />
+                    <ToggleButton IsChecked="{Binding SelectedChannelItem.IsRead}" ToolTip.Tip="{Binding IsReadToolTip}" 
+                                  HotKey="Ctrl+R" Command="{Binding ToggleReadCommand}">
+                        <Panel>
+                            <Image Classes="isFalse" Source="{SvgImage /Assets/accept-check-good-mark-ok-yellow-svgrepo-com.svg}"/>
+                            <Image Classes="isTrue" Source="{SvgImage /Assets/accept-check-good-mark-ok-tick-svgrepo-com.svg}"/>
+                        </Panel>
+                    </ToggleButton>    
+                    <ToggleButton IsChecked="{Binding SelectedChannelItem.IsFavorite}" ToolTip.Tip="{Binding IsFavoriteToolTip}" 
+                                  HotKey="Ctrl+F" Command="{Binding ToggleFavoriteCommand}">
+                        <Panel>
+                            <Image Classes="isFalse" Source="{SvgImage /Assets/bookmark-favorite-rating-star-svgrepo-com.svg}"/>
+                            <Image Classes="isTrue" Source="{SvgImage /Assets/favorite-no-rating-star-svgrepo-com.svg}"/>
+                        </Panel>
+                    </ToggleButton>  
+                    <ToggleButton IsChecked="{Binding SelectedChannelItem.IsReadLater}" ToolTip.Tip="{Binding IsReadLaterToolTip}" 
+                                  HotKey="Ctrl+L" Command="{Binding ToggleReadLaterCommand}">
+                        <Panel>
+                            <Image Classes="isFalse" Source="{SvgImage /Assets/flag-location-map-marker-pin-pointer-svgrepo-com.svg}"/>
+                            <Image Classes="isTrue" Source="{SvgImage /Assets/flag-location-map-yellow-pin-pointer-svgrepo-com.svg}"/>
+                        </Panel>
+                    </ToggleButton> 
                     <Button Width="24" Height="24" Background="Transparent" Padding="0" 
                             Command="{Binding DeleteCommand}" ToolTip.Tip="Delete (Ctrl+Delete)"
                             Content="{SvgImage /Assets/delete-remove-uncheck-svgrepo-com.svg}" HotKey="Ctrl+Delete" />
