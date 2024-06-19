@@ -57,7 +57,7 @@ public class MainViewModel : ViewModelBase
         });
 
         TreeViewModel.WhenAnyValue(x => x.SelectedChannelModel)
-            .Where(x => x != null)
+            .WhereNotNull()
             .Subscribe(x =>
             {
                 SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader, _channelService.iconConverter)

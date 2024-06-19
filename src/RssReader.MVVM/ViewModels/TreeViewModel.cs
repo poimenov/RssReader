@@ -85,13 +85,25 @@ public class TreeViewModel : ViewModelBase
         items.AddRange(_channelsService.GetChannels());
         SourceItems.AddRange(items);
         ((HierarchicalTreeDataGridSource<ChannelModel>)Source).Items = Items;
-        SelectedChannelModel = Source.Items.FirstOrDefault();
+        SelectedChannelModel = channelAll;
 
         var channelsForUpdate = GetChannelsForUpdate();
 
-        channelsForUpdate.ForEach(x => x.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); }));
+        channelsForUpdate.ForEach(x => x.WhenAnyValue(m => m.UnreadItemsCount)
+            .Subscribe(c =>
+            {
+                channelAll.UnreadItemsCount = GetAllUnreadCount();
+            }));
 
-        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default, async (x, ct) => { await _channelReader.ReadChannelAsync(x, ct); });
+        Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default,
+            async (x, ct) =>
+            {
+                await _channelReader.ReadChannelAsync(x, ct);
+            }).ContinueWith(x =>
+            {
+                SelectedChannelModel = null;
+                SelectedChannelModel = channelAll;
+            });
     }
 
     public List<ChannelModel> GetChannelsForUpdate()
