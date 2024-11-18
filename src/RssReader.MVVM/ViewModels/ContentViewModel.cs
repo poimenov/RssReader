@@ -1,13 +1,16 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Linq;
+using Avalonia.Media;
 using Avalonia.Media.Imaging;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
+using RssReader.MVVM.Extensions;
 using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -48,13 +51,15 @@ public class ContentViewModel : ViewModelBase
                 var pallete = _themeService.GetColorPaletteResource(_themeService.ActualThemeVariant);
                 if (pallete is not null)
                 {
-                    Css = @$"body {{ color: {pallete.BaseHigh};}}
-                    div {{ color: {pallete.BaseHigh};}}
-                    span {{ color: {pallete.BaseHigh};}}
-                    table {{ color: {pallete.BaseHigh};}}
-                    b {{ color: {pallete.BaseHigh};}}
-                    h1, h2, h3 {{ color: {pallete.BaseHigh}; }}
-                    p {{ color: {pallete.BaseHigh};}}";
+                    Css = @$"body {{ color: {pallete.BaseHigh.ToCssString()};}}
+                    img {{max-width: 100%; }}
+                    a {{ color: {pallete.Accent.ToCssString()};}}
+                    div {{ color: {pallete.BaseHigh.ToCssString()};}}
+                    span {{ color: {pallete.BaseHigh.ToCssString()};}}
+                    table {{ color: {pallete.BaseHigh.ToCssString()};}}
+                    b {{ color: {pallete.BaseHigh.ToCssString()};}}
+                    h1, h2, h3 {{ color: {pallete.BaseHigh.ToCssString()}; }}
+                    p {{ color: {pallete.BaseHigh.ToCssString()};}}";
                 }
             });
 

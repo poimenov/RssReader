@@ -149,13 +149,15 @@ public class ContentViewModelTests
             contentViewModel.ViewPostsCommand.CanExecute.Subscribe(x => CanExecuteViewPostsCommand = x);
 
             //Assert
-            var expectedCss = @$"body {{ color: Black;}}
-                    div {{ color: Black;}}
-                    span {{ color: Black;}}
-                    table {{ color: Black;}}
-                    b {{ color: Black;}}
-                    h1, h2, h3 {{ color: Black; }}
-                    p {{ color: Black;}}";
+            var expectedCss = @$"body {{ color: #000000;}}
+                    img {{max-width: 100%; }}
+                    a {{ color: #000000;}}
+                    div {{ color: #000000;}}
+                    span {{ color: #000000;}}
+                    table {{ color: #000000;}}
+                    b {{ color: #000000;}}
+                    h1, h2, h3 {{ color: #000000; }}
+                    p {{ color: #000000;}}";
             Assert.Equal(expectedCss, contentViewModel.Css);
             Assert.False(contentViewModel.UnreadItemsCountChanged);
             Assert.Equal(starredCount, contentViewModel.StarredCount);
