@@ -8,7 +8,7 @@
                 "task": "build",
                 "type": "msbuild"
             },
-            "program": "${workspaceFolder}/src/RssReader.MVVM/bin/Debug/net7.0/RssReader.MVVM.dll",
+            "program": "${workspaceFolder}/src/RssReader.MVVM/bin/Debug/net8.0/RssReader.MVVM.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
