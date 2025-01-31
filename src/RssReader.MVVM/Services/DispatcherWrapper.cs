@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Avalonia.Threading;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -7,8 +8,8 @@ namespace RssReader.MVVM.Services;
 
 public class DispatcherWrapper : IDispatcherWrapper
 {
-    public DispatcherOperation InvokeAsync(Action action, DispatcherPriority priority, CancellationToken cancellationToken)
+    async Task IDispatcherWrapper.InvokeAsync(Action action, CancellationToken cancellationToken)
     {
-        return Dispatcher.UIThread.InvokeAsync(action, priority, cancellationToken);
+        await Dispatcher.UIThread.InvokeAsync(action, DispatcherPriority.Background, cancellationToken);
     }
 }

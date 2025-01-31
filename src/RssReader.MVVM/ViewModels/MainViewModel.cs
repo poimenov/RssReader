@@ -13,7 +13,7 @@ public class MainViewModel : ViewModelBase
 {
     private readonly IChannelService _channelService;
     private readonly IExportImport _exportImport;
-    private readonly IChannelReader _channelReader;
+    private readonly IChannelModelUpdater _channelModelUpdater;
     private readonly IChannelItems _channelItems;
     private readonly ICategories _categories;
     private readonly ILinkOpeningService _linkOpeningService;
@@ -24,14 +24,14 @@ public class MainViewModel : ViewModelBase
     private readonly AppSettings _settings;
     private readonly ILog _log;
 
-    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelReader channelReader,
+    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelModelUpdater channelModelUpdater,
                             IChannelItems channelItems, ICategories categories, ILinkOpeningService linkOpeningService,
                             IClipboardService clipboardService, IFilePickerService filePickerService, IThemeService themeService,
                             IDispatcherWrapper dispatcherWrapper, IOptions<AppSettings> options, ILog log)
     {
         _channelService = channelService;
         _exportImport = exportImport;
-        _channelReader = channelReader;
+        _channelModelUpdater = channelModelUpdater;
         _channelItems = channelItems;
         _categories = categories;
         _linkOpeningService = linkOpeningService;
@@ -44,12 +44,12 @@ public class MainViewModel : ViewModelBase
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
 
-        SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader, _channelService.iconConverter, _dispatcherWrapper)
+        SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelModelUpdater, _channelService.iconConverter, _dispatcherWrapper)
         {
             PaneCommand = TriggerPaneCommand
         };
         ContentViewModel = new ContentViewModel(_channelService, _categories, _linkOpeningService, _clipboardService, _themeService);
-        TreeViewModel = new TreeViewModel(_channelService, _channelReader, _dispatcherWrapper, _log);
+        TreeViewModel = new TreeViewModel(_channelService, _channelModelUpdater, _dispatcherWrapper, _log);
         HeaderViewModel = new HeaderViewModel(_exportImport, _linkOpeningService, _filePickerService, _themeService, _settings);
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
@@ -62,7 +62,7 @@ public class MainViewModel : ViewModelBase
             .WhereNotNull()
             .Subscribe(x =>
             {
-                SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelReader, _channelService.iconConverter, _dispatcherWrapper)
+                SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelModelUpdater, _channelService.iconConverter, _dispatcherWrapper)
                 {
                     ChannelModel = x,
                     AllChannels = TreeViewModel.GetChannelsForUpdate(),

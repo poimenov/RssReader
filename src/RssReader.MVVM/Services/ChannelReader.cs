@@ -34,18 +34,13 @@ public class ChannelReader : IChannelReader
         _log = log;
     }
 
-    public async Task ReadChannelAsync(ChannelModel? channelModel, CancellationToken cancellationToken, IDispatcherWrapper? dispatcherWrapper = null)
+    public async Task<Channel> ReadChannelAsync(int channelId, CancellationToken cancellationToken)
     {
-        if (channelModel == null || channelModel.Id <= 0 || string.IsNullOrEmpty(channelModel.Url))
-        {
-            throw new ArgumentNullException(nameof(channelModel));
-        }
-
-        var channel = _channels.Get(channelModel.Id);
+        var channel = _channels.Get(channelId);
 
         if (channel == null)
         {
-            throw new ArgumentException("Channel not found", nameof(channelModel));
+            throw new ArgumentException("Channel not found", nameof(channelId));
         }
 
         try
@@ -78,7 +73,7 @@ public class ChannelReader : IChannelReader
                 }
 
                 Uri? siteUri = null;
-                var siteLink = string.IsNullOrEmpty(channelModel.Link) ? new Uri(channelModel.Url).GetLeftPart(UriPartial.Authority) : channelModel.Link;
+                var siteLink = string.IsNullOrEmpty(channel.Link) ? new Uri(channel.Url).GetLeftPart(UriPartial.Authority) : channel.Link;
                 if (!string.IsNullOrEmpty(siteLink))
                 {
                     siteUri = new Uri(siteLink);
@@ -116,19 +111,6 @@ public class ChannelReader : IChannelReader
                     }).ToList().ForEach(x => _channelItems.Create(x.Item, x.Categories));
                 }
 
-                if (dispatcherWrapper != null)
-                {
-                    await dispatcherWrapper.InvokeAsync(() =>
-                    {
-                        channelModel.Title = channel.Title;
-                        channelModel.Description = channel.Description;
-                        channelModel.Link = channel.Link;
-                        channelModel.ImageUrl = channel.ImageUrl;
-                        channelModel.Url = channel.Url;
-                        channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
-                    }, DispatcherPriority.Background, cancellationToken);
-                }
-
                 Debug.WriteLine($"End read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             }
             else
@@ -144,6 +126,8 @@ public class ChannelReader : IChannelReader
             _log.InfoFormat($"Url = {channel.Url}");
             _log.Error(ex);
         }
+
+        return channel;
     }
 
     public async Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, CancellationToken cancellationToken)

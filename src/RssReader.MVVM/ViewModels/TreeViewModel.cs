@@ -24,13 +24,13 @@ namespace RssReader.MVVM.ViewModels;
 public class TreeViewModel : ViewModelBase
 {
     private readonly IChannelService _channelsService;
-    private readonly IChannelReader _channelReader;
+    private readonly IChannelModelUpdater _channelModelUpdater;
     private readonly IDispatcherWrapper _dispatcherWrapper;
     private readonly ILog _log;
-    public TreeViewModel(IChannelService channelsService, IChannelReader channelReader, IDispatcherWrapper dispatcherWrapper, ILog log)
+    public TreeViewModel(IChannelService channelsService, IChannelModelUpdater channelModelUpdater, IDispatcherWrapper dispatcherWrapper, ILog log)
     {
         _channelsService = channelsService;
-        _channelReader = channelReader;
+        _channelModelUpdater = channelModelUpdater;
         _dispatcherWrapper = dispatcherWrapper;
         _log = log;
         AddFolderCommand = CreateAddFolderCommand();
@@ -100,7 +100,7 @@ public class TreeViewModel : ViewModelBase
         Parallel.ForEachAsync(channelsForUpdate, cancellationToken: default,
             async (x, ct) =>
             {
-                await _channelReader.ReadChannelAsync(x, ct, _dispatcherWrapper);
+                await _channelModelUpdater.ReadChannelAsync(x, ct, _dispatcherWrapper);
             });
     }
 
@@ -280,7 +280,7 @@ public class TreeViewModel : ViewModelBase
                         _channelsService.AddChannel(feed);
                         var channelAll = SourceItems.First(x => x.ModelType == ChannelModelType.All);
                         feed.WhenAnyValue(m => m.UnreadItemsCount).Subscribe(c => { channelAll.UnreadItemsCount = GetAllUnreadCount(); });
-                        await _channelReader.ReadChannelAsync(feed, default, _dispatcherWrapper);
+                        await _channelModelUpdater.ReadChannelAsync(feed, default, _dispatcherWrapper);
                         feed.UpdateImageSource();
                         var source = (HierarchicalTreeDataGridSource<ChannelModel>)Source;
                         source.RowSelection?.Select(source.Items.IndexOf(feed));

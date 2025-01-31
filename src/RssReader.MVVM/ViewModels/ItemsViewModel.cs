@@ -19,13 +19,13 @@ namespace RssReader.MVVM.ViewModels;
 public class ItemsViewModel : ViewModelBase
 {
     private readonly IChannelItems _channelItems;
-    private readonly IChannelReader _channelReader;
+    private readonly IChannelModelUpdater _channelModelUpdater;
     private readonly IIconConverter _iconConverter;
     private readonly IDispatcherWrapper _dispatcherWrapper;
-    public ItemsViewModel(IChannelItems channelItems, IChannelReader channelReader, IIconConverter iconConverter, IDispatcherWrapper dispatcherWrapper)
+    public ItemsViewModel(IChannelItems channelItems, IChannelModelUpdater channelModelUpdater, IIconConverter iconConverter, IDispatcherWrapper dispatcherWrapper)
     {
         _channelItems = channelItems;
-        _channelReader = channelReader;
+        _channelModelUpdater = channelModelUpdater;
         _iconConverter = iconConverter;
         _dispatcherWrapper = dispatcherWrapper;
         MarkAsReadCommand = CreateMarkAsReadCommand();
@@ -203,18 +203,18 @@ public class ItemsViewModel : ViewModelBase
                     {
                         if (ChannelModel.IsChannelsGroup && ChannelModel.Children!.Any())
                         {
-                            await Task.WhenAll(ChannelModel.Children!.Select(x => _channelReader.ReadChannelAsync(x, default, _dispatcherWrapper)));
+                            await Task.WhenAll(ChannelModel.Children!.Select(x => _channelModelUpdater.ReadChannelAsync(x, default, _dispatcherWrapper)));
                             items = _channelItems.GetByGroupId(ChannelModel.Id);
                         }
                         else
                         {
-                            await _channelReader.ReadChannelAsync(ChannelModel, default, _dispatcherWrapper);
+                            await _channelModelUpdater.ReadChannelAsync(ChannelModel, default, _dispatcherWrapper);
                             items = _channelItems.GetByChannelId(ChannelModel.Id);
                         }
                     }
                     else
                     {
-                        await Task.WhenAll(AllChannels!.Select(x => _channelReader.ReadChannelAsync(x, default, _dispatcherWrapper)));
+                        await Task.WhenAll(AllChannels!.Select(x => _channelModelUpdater.ReadChannelAsync(x, default, _dispatcherWrapper)));
                         items = _channelItems.GetByRead(false);
                     }
 

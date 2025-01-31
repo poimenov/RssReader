@@ -12,7 +12,7 @@ using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.Tests.Services
 {
-    public class ChannelReaderTests
+    public class ChannelModelUpdaterTests
     {
         [Fact]
         public async Task ReadChannelAsync_InvalidChannelModel_ThrowsException()
@@ -20,43 +20,40 @@ namespace RssReader.MVVM.Tests.Services
             //Arrange
             var mockHttpHandler = new Mock<IHttpHandler>();
             var mockChannels = new Mock<IChannels>();
-            Channel? channel = null;
-            mockChannels.Setup(c => c.Get(It.IsAny<int>())).Returns(channel);
             var mockChannelItems = new Mock<IChannelItems>();
             var mockLog = new Mock<ILog>();
             var mockIconConverter = new Mock<IIconConverter>();
             var mockDispatherWrapper = new Mock<IDispatcherWrapper>();
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
+            var mockChannelReader = new Mock<IChannelReader>();
 
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object);
+            var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, mockChannelReader.Object);
 
             ChannelModel? channelModel = null;
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(0, "Test", null, "https://example.com/rss", null, null, 0, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(1, "Test", null, string.Empty, null, null, 0, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(ChannelModelType.ReadLater, ChannelModel.CHANNELMODELTYPE_READLATER, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(ChannelModelType.Starred, ChannelModel.CHANNELMODELTYPE_STARRED, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(1, "Test", null, "https://example.com/rss", null, null, 0, 0, mockIconConverter.Object);
-            // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
         }
 
         [Fact]
@@ -67,8 +64,12 @@ namespace RssReader.MVVM.Tests.Services
             var imageUri = new Uri("http://www.test.com/image.png");
 
             var mockHttpHandler = new Mock<IHttpHandler>();
-            mockHttpHandler.Setup(h => h.GetStringAsync(It.Is<string>(arg => arg == rssUrl), It.IsAny<CancellationToken>())).Returns(GetStringAsync("rss.xml"));
-            mockHttpHandler.Setup(h => h.GetByteArrayAsync(It.Is<Uri>(arg => arg.ToString() == imageUri.ToString()), It.IsAny<CancellationToken>())).Returns(GetBytesAsync("rss.png"));
+            mockHttpHandler.Setup(h => h.GetStringAsync(It.Is<string>(arg => arg == rssUrl),
+                                                        It.IsAny<CancellationToken>()))
+                                                        .Returns(GetStringAsync("rss.xml"));
+            mockHttpHandler.Setup(h => h.GetByteArrayAsync(It.Is<Uri>(arg => arg.ToString() == imageUri.ToString()),
+                                                        It.IsAny<CancellationToken>()))
+                                                        .Returns(GetBytesAsync("rss.png"));
 
             var mockChannels = new Mock<IChannels>();
             Channel? channel = new Channel
@@ -88,15 +89,20 @@ namespace RssReader.MVVM.Tests.Services
             var mockLog = new Mock<ILog>();
             var mockIconConverter = new Mock<IIconConverter>();
             var mockDispatherWrapper = new Mock<IDispatcherWrapper>();
-            mockDispatherWrapper.Setup(d => d.InvokeAsync(It.IsAny<Action>(), It.IsAny<DispatcherPriority>(), It.IsAny<CancellationToken>())).Callback((Action action, DispatcherPriority priority, CancellationToken cancellationToken) => action());
+            mockDispatherWrapper.Setup(d => d.InvokeAsync(It.IsAny<Action>(),
+                                                        It.IsAny<CancellationToken>()))
+                                                        .Callback((Action action,
+                                                            CancellationToken cancellationToken) => action());
 
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
-
-            var channelModel = new ChannelModel(1, "Test", null, rssUrl, null, null, 0, 0, mockIconConverter.Object);
             var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object)
             {
                 IconsDirectoryPath = GetFullPath("Icons")
             };
+
+            var channelModel = new ChannelModel(1, "Test", null, rssUrl, null, null, 0, 0, mockIconConverter.Object);
+            var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, channelReader);
+
             var iconFileName = GetFullPath($"Icons{Path.DirectorySeparatorChar}test.com.png");
             if (File.Exists(iconFileName))
             {
@@ -117,7 +123,7 @@ namespace RssReader.MVVM.Tests.Services
             var items = document.SelectNodes("/rss/channel/item");
 
             // Act
-            await channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object);
+            await ChannelModelUpdater.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object);
 
             // Assert            
             mockChannels.Verify(c => c.Get(It.Is<int>(arg => arg == channel.Id)), Times.Once);
@@ -155,7 +161,7 @@ namespace RssReader.MVVM.Tests.Services
                                                     Times.Once);
             }
 
-            mockDispatherWrapper.Verify(d => d.InvokeAsync(It.IsAny<Action>(), DispatcherPriority.Background, It.IsAny<CancellationToken>()), Times.Once);
+            mockDispatherWrapper.Verify(d => d.InvokeAsync(It.IsAny<Action>(), It.IsAny<CancellationToken>()), Times.Once);
             Assert.True(File.Exists(iconFileName));
         }
 

@@ -7,7 +7,5 @@ namespace RssReader.MVVM.Services.Interfaces;
 
 public interface IDispatcherWrapper
 {
-    DispatcherOperation InvokeAsync(Action action, DispatcherPriority priority, CancellationToken cancellationToken);
-
-    //DispatcherOperation<TResult> InvokeAsync<TResult>(Func<TResult> callback);    
+    Task InvokeAsync(Action action, CancellationToken cancellationToken);
 }

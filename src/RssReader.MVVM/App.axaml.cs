@@ -58,7 +58,7 @@ public partial class App : Application
                     DataContext = new MainViewModel(
                         GetRequiredService<IChannelService>(),
                          GetRequiredService<IExportImport>(),
-                         GetRequiredService<IChannelReader>(),
+                         GetRequiredService<IChannelModelUpdater>(),
                          GetRequiredService<IChannelItems>(),
                          GetRequiredService<ICategories>(),
                          GetRequiredService<ILinkOpeningService>(),
@@ -88,6 +88,7 @@ public partial class App : Application
                 .AddTransient<IHttpHandler, HttpHandler>()
                 .AddTransient<IExportImport, ExportImport>()
                 .AddTransient<IChannelReader, ChannelReader>()
+                .AddTransient<IChannelModelUpdater, ChannelModelUpdater>()
                 .AddTransient<IChannelService, ChannelService>();
 
 
