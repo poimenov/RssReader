@@ -21,11 +21,13 @@ public class ItemsViewModel : ViewModelBase
     private readonly IChannelItems _channelItems;
     private readonly IChannelReader _channelReader;
     private readonly IIconConverter _iconConverter;
-    public ItemsViewModel(IChannelItems channelItems, IChannelReader channelReader, IIconConverter iconConverter)
+    private readonly IDispatcherWrapper _dispatcherWrapper;
+    public ItemsViewModel(IChannelItems channelItems, IChannelReader channelReader, IIconConverter iconConverter, IDispatcherWrapper dispatcherWrapper)
     {
         _channelItems = channelItems;
         _channelReader = channelReader;
         _iconConverter = iconConverter;
+        _dispatcherWrapper = dispatcherWrapper;
         MarkAsReadCommand = CreateMarkAsReadCommand();
         RefreshCommand = CreateRefreshCommand();
 
@@ -201,18 +203,18 @@ public class ItemsViewModel : ViewModelBase
                     {
                         if (ChannelModel.IsChannelsGroup && ChannelModel.Children!.Any())
                         {
-                            await Task.WhenAll(ChannelModel.Children!.Select(x => _channelReader.ReadChannelAsync(x, default)));
+                            await Task.WhenAll(ChannelModel.Children!.Select(x => _channelReader.ReadChannelAsync(x, default, _dispatcherWrapper)));
                             items = _channelItems.GetByGroupId(ChannelModel.Id);
                         }
                         else
                         {
-                            await _channelReader.ReadChannelAsync(ChannelModel, default);
+                            await _channelReader.ReadChannelAsync(ChannelModel, default, _dispatcherWrapper);
                             items = _channelItems.GetByChannelId(ChannelModel.Id);
                         }
                     }
                     else
                     {
-                        await Task.WhenAll(AllChannels!.Select(x => _channelReader.ReadChannelAsync(x, default)));
+                        await Task.WhenAll(AllChannels!.Select(x => _channelReader.ReadChannelAsync(x, default, _dispatcherWrapper)));
                         items = _channelItems.GetByRead(false);
                     }
 

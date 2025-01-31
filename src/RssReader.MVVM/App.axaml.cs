@@ -65,6 +65,7 @@ public partial class App : Application
                          GetRequiredService<IClipboardService>(),
                          GetRequiredService<IFilePickerService>(),
                          GetRequiredService<IThemeService>(),
+                         GetRequiredService<IDispatcherWrapper>(),
                          GetRequiredService<IOptions<AppSettings>>(),
                          GetRequiredService<ILog>()
                      )

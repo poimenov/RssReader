@@ -2,7 +2,6 @@ using System;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
@@ -24,20 +23,18 @@ public class ChannelReader : IChannelReader
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
     private readonly IHttpHandler _httpHandler;
-    private readonly IDispatcherWrapper _dispatcherWrapper;
     private readonly AppSettings _appSettings;
 
-    public ChannelReader(IHttpHandler httpHandler, IDispatcherWrapper dispatcherWrapper, IChannels channels, IChannelItems channelItems, IOptions<AppSettings> options, ILog log)
+    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, IOptions<AppSettings> options, ILog log)
     {
         _httpHandler = httpHandler;
-        _dispatcherWrapper = dispatcherWrapper;
         _channels = channels;
         _channelItems = channelItems;
         _appSettings = options.Value;
         _log = log;
     }
 
-    public async Task ReadChannelAsync(ChannelModel? channelModel, CancellationToken cancellationToken)
+    public async Task ReadChannelAsync(ChannelModel? channelModel, CancellationToken cancellationToken, IDispatcherWrapper? dispatcherWrapper = null)
     {
         if (channelModel == null || channelModel.Id <= 0 || string.IsNullOrEmpty(channelModel.Url))
         {
@@ -119,15 +116,19 @@ public class ChannelReader : IChannelReader
                     }).ToList().ForEach(x => _channelItems.Create(x.Item, x.Categories));
                 }
 
-                await _dispatcherWrapper.InvokeAsync(() =>
+                if (dispatcherWrapper != null)
                 {
-                    channelModel.Title = channel.Title;
-                    channelModel.Description = channel.Description;
-                    channelModel.Link = channel.Link;
-                    channelModel.ImageUrl = channel.ImageUrl;
-                    channelModel.Url = channel.Url;
-                    channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
-                }, DispatcherPriority.Background, cancellationToken);
+                    await dispatcherWrapper.InvokeAsync(() =>
+                    {
+                        channelModel.Title = channel.Title;
+                        channelModel.Description = channel.Description;
+                        channelModel.Link = channel.Link;
+                        channelModel.ImageUrl = channel.ImageUrl;
+                        channelModel.Url = channel.Url;
+                        channelModel.UnreadItemsCount = _channels.GetChannelUnreadCount(channel.Id);
+                    }, DispatcherPriority.Background, cancellationToken);
+                }
+
                 Debug.WriteLine($"End read url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             }
             else

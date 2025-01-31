@@ -7,7 +7,7 @@ namespace RssReader.MVVM.Services.Interfaces;
 
 public interface IChannelReader
 {
-    Task ReadChannelAsync(ChannelModel? channelModel, CancellationToken cancellationToken);
+    Task ReadChannelAsync(ChannelModel? channelModel, CancellationToken cancellationToken, IDispatcherWrapper? dispatcherWrapper = null);
     Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, CancellationToken cancellationToken);
     string IconsDirectoryPath { get; set; }
 }

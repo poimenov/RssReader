@@ -28,35 +28,35 @@ namespace RssReader.MVVM.Tests.Services
             var mockDispatherWrapper = new Mock<IDispatcherWrapper>();
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
 
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockDispatherWrapper.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object);
+            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object);
 
             ChannelModel? channelModel = null;
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(0, "Test", null, "https://example.com/rss", null, null, 0, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(1, "Test", null, string.Empty, null, null, 0, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(ChannelModelType.All, ChannelModel.CHANNELMODELTYPE_ALL, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(ChannelModelType.ReadLater, ChannelModel.CHANNELMODELTYPE_READLATER, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(ChannelModelType.Starred, ChannelModel.CHANNELMODELTYPE_STARRED, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentNullException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
 
             channelModel = new ChannelModel(1, "Test", null, "https://example.com/rss", null, null, 0, 0, mockIconConverter.Object);
             // Act & Assert
-            await Assert.ThrowsAsync<ArgumentException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None));
+            await Assert.ThrowsAsync<ArgumentException>(() => channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object));
         }
 
         [Fact]
@@ -93,7 +93,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
 
             var channelModel = new ChannelModel(1, "Test", null, rssUrl, null, null, 0, 0, mockIconConverter.Object);
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockDispatherWrapper.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object)
+            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object)
             {
                 IconsDirectoryPath = GetFullPath("Icons")
             };
@@ -117,7 +117,7 @@ namespace RssReader.MVVM.Tests.Services
             var items = document.SelectNodes("/rss/channel/item");
 
             // Act
-            await channelReader.ReadChannelAsync(channelModel, CancellationToken.None);
+            await channelReader.ReadChannelAsync(channelModel, CancellationToken.None, mockDispatherWrapper.Object);
 
             // Assert            
             mockChannels.Verify(c => c.Get(It.Is<int>(arg => arg == channel.Id)), Times.Once);
