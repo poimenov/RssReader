@@ -1,14 +1,12 @@
 using System;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
-using RssReader.MVVM.Models;
+using RssReader.MVVM.DataAccess.Models;
 
 namespace RssReader.MVVM.Services.Interfaces;
 
 public interface IChannelReader
 {
-    Task<DataAccess.Models.Channel> ReadChannelAsync(int channelId, CancellationToken cancellationToken);
-    Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, CancellationToken cancellationToken);
-    string IconsDirectoryPath { get; set; }
+    Task<Channel> ReadChannelAsync(int channelId, string iconsDirectoryPath, CancellationToken cancellationToken);
+    Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, string iconsDirectoryPath, CancellationToken cancellationToken);
 }

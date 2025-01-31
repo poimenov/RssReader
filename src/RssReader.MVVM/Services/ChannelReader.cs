@@ -5,13 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
-using Avalonia.Threading;
 using CodeHollow.FeedReader;
 using log4net;
-using Microsoft.Extensions.Options;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
-using RssReader.MVVM.Models;
 using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.Services;
@@ -23,18 +20,16 @@ public class ChannelReader : IChannelReader
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
     private readonly IHttpHandler _httpHandler;
-    private readonly AppSettings _appSettings;
 
-    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, IOptions<AppSettings> options, ILog log)
+    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, ILog log)
     {
         _httpHandler = httpHandler;
         _channels = channels;
         _channelItems = channelItems;
-        _appSettings = options.Value;
         _log = log;
     }
 
-    public async Task<Channel> ReadChannelAsync(int channelId, CancellationToken cancellationToken)
+    public async Task<Channel> ReadChannelAsync(int channelId, string iconsDirectoryPath, CancellationToken cancellationToken)
     {
         var channel = _channels.Get(channelId);
 
@@ -79,7 +74,7 @@ public class ChannelReader : IChannelReader
                     siteUri = new Uri(siteLink);
                 }
 
-                await DownloadIconAsync(imageUri, siteUri, cancellationToken);
+                await DownloadIconAsync(imageUri, siteUri, iconsDirectoryPath, cancellationToken);
 
                 lock (_locker)
                 {
@@ -130,18 +125,18 @@ public class ChannelReader : IChannelReader
         return channel;
     }
 
-    public async Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, CancellationToken cancellationToken)
+    public async Task DownloadIconAsync(Uri? imageUri, Uri? siteUri, string iconsDirectoryPath, CancellationToken cancellationToken)
     {
         if (imageUri != null || siteUri != null)
         {
             try
             {
-                if (!Directory.Exists(IconsDirectoryPath))
+                if (!Directory.Exists(iconsDirectoryPath))
                 {
-                    Directory.CreateDirectory(IconsDirectoryPath);
+                    Directory.CreateDirectory(iconsDirectoryPath);
                 }
 
-                if (siteUri != null && Directory.GetFiles(IconsDirectoryPath, $"{siteUri.Host}.*").Length == 0)
+                if (siteUri != null && Directory.GetFiles(iconsDirectoryPath, $"{siteUri.Host}.*").Length == 0)
                 {
                     if (imageUri == null)
                     {
@@ -184,7 +179,7 @@ public class ChannelReader : IChannelReader
                         if (data != null && data.Length > 0 && !string.IsNullOrEmpty(fileExtension))
                         {
                             var fileName = $"{siteUri.Host}{fileExtension}";
-                            File.WriteAllBytes(Path.Combine(IconsDirectoryPath, fileName), data);
+                            File.WriteAllBytes(Path.Combine(iconsDirectoryPath, fileName), data);
                         }
                     }
                 }
@@ -194,24 +189,6 @@ public class ChannelReader : IChannelReader
                 Debug.WriteLine(ex);
                 _log.Error(ex);
             }
-        }
-    }
-
-    private string _iconsDirectoryPath = string.Empty;
-    public string IconsDirectoryPath
-    {
-        get
-        {
-            if (string.IsNullOrEmpty(_iconsDirectoryPath))
-            {
-                _iconsDirectoryPath = Path.Combine(_appSettings.AppDataPath, "Icons");
-            }
-
-            return _iconsDirectoryPath;
-        }
-        set
-        {
-            _iconsDirectoryPath = value;
         }
     }
 

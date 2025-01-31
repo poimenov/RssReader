@@ -1,6 +1,5 @@
 using System.Reflection;
 using System.Xml;
-using Avalonia.Threading;
 using log4net;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -27,7 +26,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
             var mockChannelReader = new Mock<IChannelReader>();
 
-            var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, mockChannelReader.Object);
+            var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, mockChannelReader.Object, mockAppSettings.Object);
 
             ChannelModel? channelModel = null;
             // Act & Assert
@@ -95,13 +94,13 @@ namespace RssReader.MVVM.Tests.Services
                                                             CancellationToken cancellationToken) => action());
 
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockAppSettings.Object, mockLog.Object)
-            {
-                IconsDirectoryPath = GetFullPath("Icons")
-            };
+            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockLog.Object);
 
             var channelModel = new ChannelModel(1, "Test", null, rssUrl, null, null, 0, 0, mockIconConverter.Object);
-            var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, channelReader);
+            var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, channelReader, mockAppSettings.Object)
+            {
+                IconsDirectoryPath = GetFullPath("Icons")
+            };            
 
             var iconFileName = GetFullPath($"Icons{Path.DirectorySeparatorChar}test.com.png");
             if (File.Exists(iconFileName))
