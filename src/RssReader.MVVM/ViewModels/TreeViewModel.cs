@@ -99,10 +99,6 @@ public class TreeViewModel : ViewModelBase
             async (x, ct) =>
             {
                 await _channelReader.ReadChannelAsync(x, ct);
-            }).ContinueWith(x =>
-            {
-                SelectedChannelModel = null;
-                SelectedChannelModel = channelAll;
             });
     }
 
