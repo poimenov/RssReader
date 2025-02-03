@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Xml.Linq;
 using CodeHollow.FeedReader;
-using log4net;
+using Microsoft.Extensions.Logging;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.DataAccess.Models;
 using RssReader.MVVM.Services.Interfaces;
@@ -16,17 +16,17 @@ namespace RssReader.MVVM.Services;
 public class ChannelReader : IChannelReader
 {
     private readonly object _locker = new object();
-    private readonly ILog _log;
+    private readonly ILogger<ChannelReader> _logger;
     private readonly IChannels _channels;
     private readonly IChannelItems _channelItems;
     private readonly IHttpHandler _httpHandler;
 
-    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, ILog log)
+    public ChannelReader(IHttpHandler httpHandler, IChannels channels, IChannelItems channelItems, ILogger<ChannelReader> logger)
     {
         _httpHandler = httpHandler;
         _channels = channels;
         _channelItems = channelItems;
-        _log = log;
+        _logger = logger;
     }
 
     public async Task<Channel> ReadChannelAsync(int channelId, string iconsDirectoryPath, CancellationToken cancellationToken)
@@ -111,15 +111,20 @@ public class ChannelReader : IChannelReader
             else
             {
                 Debug.WriteLine($"Can't load feed from url = {channel.Url}");
-                _log.InfoFormat($"Can't load feed from url = {channel.Url}");
+                _logger.LogInformation($"Can't load feed from url = {channel.Url}");
             }
+        }
+        catch (TaskCanceledException ex)
+        {
+            var message = $"TaskCanceledException: Url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}, Message = {ex.Message}";
+            Debug.WriteLine(message);
+            _logger.LogInformation(message);
         }
         catch (Exception ex)
         {
             Debug.WriteLine($"Url = {channel.Url}");
             Debug.WriteLine(ex);
-            _log.InfoFormat($"Url = {channel.Url}");
-            _log.Error(ex);
+            _logger.LogError(ex, $"Url = {channel.Url}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
         }
 
         return channel;
@@ -187,7 +192,7 @@ public class ChannelReader : IChannelReader
             catch (Exception ex)
             {
                 Debug.WriteLine(ex);
-                _log.Error(ex);
+                _logger.LogError(ex, $"imageUri = {imageUri}, siteUri = {siteUri}, ThreadId = {Thread.CurrentThread.ManagedThreadId}");
             }
         }
     }

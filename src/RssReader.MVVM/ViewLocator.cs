@@ -1,27 +1,48 @@
-using System;
 using Avalonia.Controls;
 using Avalonia.Controls.Templates;
-using RssReader.MVVM.ViewModels;
 
 namespace RssReader.MVVM;
 
 public class ViewLocator : IDataTemplate
 {
-    public Control Build(object data)
+    public Control? Build(object? data)
     {
-        var name = data.GetType().FullName!.Replace("ViewModel", "View");
-        var type = Type.GetType(name);
-
-        if (type != null)
-        {
-            return (Control)Activator.CreateInstance(type)!;
-        }
+        if (data is null)
+            return null;
         
-        return new TextBlock { Text = "Not Found: " + name };
+        var view = ReactiveUI.ViewLocator.Current.ResolveView(data);
+        
+        if (view != null)
+        {
+            view.ViewModel = data;
+            return (Control)view;
+        }
+        else
+        {
+            var baseType = data.GetType().BaseType;
+
+            while (baseType != null)
+            {
+                var baseView = ReactiveUI.ViewLocator.Current.ResolveView(data);
+
+                if (baseView != null)
+                {
+                    baseView.ViewModel = data;
+                    return (Control)baseView;
+                }
+                
+                baseType = baseType.BaseType;
+            }
+        }
+
+        return new TextBlock
+        {
+            Text = "Not found View for: " + data.GetType().Name
+        };
     }
 
-    public bool Match(object data)
+    public bool Match(object? data)
     {
-        return data is ViewModelBase;
+        return data?.GetType().Name.EndsWith("ViewModel") ?? false;
     }
 }

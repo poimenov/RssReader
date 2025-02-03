@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Media;
 using Avalonia.Platform.Storage;
 using Avalonia.Styling;
+using Microsoft.Extensions.Options;
 using ReactiveUI;
 using RssReader.MVVM.Services.Interfaces;
 
@@ -18,13 +19,14 @@ public class HeaderViewModel : ViewModelBase
     private readonly IFilePickerService _filePickerService;
     private readonly IThemeService _themeService;
     private readonly AppSettings _settings;
-    public HeaderViewModel(IExportImport? exportImport, ILinkOpeningService linkOpeningService, IFilePickerService filePickerService, IThemeService themeService, AppSettings settings)
+    public HeaderViewModel(IExportImport? exportImport, ILinkOpeningService linkOpeningService,
+        IFilePickerService filePickerService, IThemeService themeService, IOptions<AppSettings> options)
     {
         _exportImport = exportImport;
         _linkOpeningService = linkOpeningService;
         _filePickerService = filePickerService;
         _themeService = themeService;
-        _settings = settings;
+        _settings = options.Value;
         _importCount = 0;
         ExportCommand = CreateExportCommand();
         ImportCommand = CreateImportCommand();

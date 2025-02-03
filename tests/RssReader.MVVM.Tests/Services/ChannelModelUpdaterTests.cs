@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Xml;
 using log4net;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
 using RssReader.MVVM.DataAccess.Interfaces;
@@ -85,7 +86,7 @@ namespace RssReader.MVVM.Tests.Services
             var mockChannelItems = new Mock<IChannelItems>();
             mockChannelItems.Setup(c => c.Create(It.IsAny<ChannelItem>(), It.IsAny<string[]>())).Returns(1);
 
-            var mockLog = new Mock<ILog>();
+            var mockLogger = new Mock<ILogger<ChannelReader>>();
             var mockIconConverter = new Mock<IIconConverter>();
             var mockDispatherWrapper = new Mock<IDispatcherWrapper>();
             mockDispatherWrapper.Setup(d => d.InvokeAsync(It.IsAny<Action>(),
@@ -94,13 +95,13 @@ namespace RssReader.MVVM.Tests.Services
                                                             CancellationToken cancellationToken) => action());
 
             var mockAppSettings = new Mock<IOptions<AppSettings>>();
-            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockLog.Object);
+            var channelReader = new ChannelReader(mockHttpHandler.Object, mockChannels.Object, mockChannelItems.Object, mockLogger.Object);
 
             var channelModel = new ChannelModel(1, "Test", null, rssUrl, null, null, 0, 0, mockIconConverter.Object);
             var ChannelModelUpdater = new ChannelModelUpdater(mockChannels.Object, channelReader, mockAppSettings.Object)
             {
                 IconsDirectoryPath = GetFullPath("Icons")
-            };            
+            };
 
             var iconFileName = GetFullPath($"Icons{Path.DirectorySeparatorChar}test.com.png");
             if (File.Exists(iconFileName))

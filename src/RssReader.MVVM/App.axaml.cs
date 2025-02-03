@@ -1,22 +1,23 @@
 using System;
-using System.Reflection;
+using System.IO;
 using System.Text;
 using System.Threading;
-using Avalonia;
-using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Markup.Xaml;
-using log4net;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
+using log4net.Config;
 using MsBox.Avalonia.Enums;
-using RssReader.MVVM.DataAccess;
+using ReactiveUI;
+using Splat;
+using Splat.Microsoft.Extensions.DependencyInjection;
 using RssReader.MVVM.DataAccess.Interfaces;
 using RssReader.MVVM.Extensions;
-using RssReader.MVVM.Services;
-using RssReader.MVVM.Services.Interfaces;
 using RssReader.MVVM.ViewModels;
 using RssReader.MVVM.Views;
 
@@ -37,60 +38,38 @@ public partial class App : Application
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-            var builder = Host.CreateApplicationBuilder();
-
-            builder.Configuration
-                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                .AddJsonFile(AppSettings.JSON_FILE_NAME, optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables();
-
-            builder.Logging
-                .ClearProviders()
-                .AddLog4Net();
-
-            IServiceCollection services = builder.Services;
-
-            services
-                .Configure<AppSettings>(builder.Configuration)
-                .AddSingleton<ILog>(LogManager.GetLogger(MethodBase.GetCurrentMethod()!.DeclaringType))
-                .AddSingleton<MainWindow>(service => new MainWindow
+            var builder = new HostBuilder()
+                .ConfigureAppConfiguration(configBuilder =>
                 {
-                    DataContext = new MainViewModel(
-                        GetRequiredService<IChannelService>(),
-                         GetRequiredService<IExportImport>(),
-                         GetRequiredService<IChannelModelUpdater>(),
-                         GetRequiredService<IChannelItems>(),
-                         GetRequiredService<ICategories>(),
-                         GetRequiredService<ILinkOpeningService>(),
-                         GetRequiredService<IClipboardService>(),
-                         GetRequiredService<IFilePickerService>(),
-                         GetRequiredService<IThemeService>(),
-                         GetRequiredService<IDispatcherWrapper>(),
-                         GetRequiredService<IOptions<AppSettings>>(),
-                         GetRequiredService<ILog>()
-                     )
+                    configBuilder
+                        .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                        .AddJsonFile(AppSettings.JSON_FILE_NAME, optional: true, reloadOnChange: true)
+                        .AddEnvironmentVariables();
                 })
-                //data access 
-                .AddTransient<IDatabaseMigrator, DatabaseMigrator>()
-                .AddTransient<IChannelsGroups, ChannelsGroups>()
-                .AddTransient<IChannels, Channels>()
-                .AddTransient<IChannelItems, ChannelItems>()
-                .AddTransient<ICategories, Categories>()
-                //services
-                .AddTransient<IIconConverter, IconConverter>()
-                .AddTransient<IThemeService, ThemeService>()
-                .AddTransient<IFilePickerService, FilePickerService>()
-                .AddTransient<IClipboardService, ClipboardService>()
-                .AddTransient<IPlatformService, PlatformService>()
-                .AddTransient<IProcessService, ProcessService>()
-                .AddTransient<ILinkOpeningService, LinkOpeningService>()
-                .AddTransient<IDispatcherWrapper, DispatcherWrapper>()
-                .AddTransient<IHttpHandler, HttpHandler>()
-                .AddTransient<IExportImport, ExportImport>()
-                .AddTransient<IChannelReader, ChannelReader>()
-                .AddTransient<IChannelModelUpdater, ChannelModelUpdater>()
-                .AddTransient<IChannelService, ChannelService>();
+                .ConfigureLogging(configureLogging =>
+                {
+                    configureLogging.ClearProviders();
+                    configureLogging.AddLog4Net();
+                })
+                .ConfigureServices((context, services) =>
+                {
+                    services.UseMicrosoftDependencyResolver();
+                    var resolver = Locator.CurrentMutable;
+                    resolver.InitializeSplat();
+                    resolver.RegisterConstant(new AvaloniaActivationForViewFetcher(), typeof(IActivationForViewFetcher));
+                    resolver.RegisterConstant(new AutoDataTemplateBindingHook(), typeof(IPropertyBindingHook));
+                    RxApp.MainThreadScheduler = AvaloniaScheduler.Instance;
 
+                    services
+                        .Configure<AppSettings>(context.Configuration)
+                        .AddDataAccess()
+                        .AddServices()
+                        .AddViewModels()
+                        .AddSingleton<MainWindow>(service => new MainWindow
+                        {
+                            DataContext = service.GetRequiredService<MainViewModel>()
+                        });
+                });
 
             _host = builder.Build();
             _cancellationTokenSource = new();
@@ -103,6 +82,8 @@ public partial class App : Application
                 {
                     Environment.SetEnvironmentVariable(DATA_DIRECTORY, Settings.AppDataPath);
                 }
+
+                XmlConfigurator.Configure(new FileInfo(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "log4net.config")));
                 GetRequiredService<IDatabaseMigrator>().MigrateDatabase();
                 RequestedThemeVariant = Settings.GetTheme();
                 Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);

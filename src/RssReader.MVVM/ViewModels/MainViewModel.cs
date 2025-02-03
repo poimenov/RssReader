@@ -1,56 +1,27 @@
 using System;
 using System.Linq;
 using System.Reactive.Linq;
-using log4net;
-using Microsoft.Extensions.Options;
+using Microsoft.Extensions.DependencyInjection;
 using ReactiveUI;
 using RssReader.MVVM.DataAccess.Interfaces;
-using RssReader.MVVM.Services.Interfaces;
 
 namespace RssReader.MVVM.ViewModels;
 
 public class MainViewModel : ViewModelBase
 {
-    private readonly IChannelService _channelService;
-    private readonly IExportImport _exportImport;
-    private readonly IChannelModelUpdater _channelModelUpdater;
     private readonly IChannelItems _channelItems;
-    private readonly ICategories _categories;
-    private readonly ILinkOpeningService _linkOpeningService;
-    private readonly IClipboardService _clipboardService;
-    private readonly IFilePickerService _filePickerService;
-    private readonly IThemeService _themeService;
-    private readonly IDispatcherWrapper _dispatcherWrapper;
-    private readonly AppSettings _settings;
-    private readonly ILog _log;
+    private readonly IServiceProvider _serviceProvider;
 
-    public MainViewModel(IChannelService channelService, IExportImport exportImport, IChannelModelUpdater channelModelUpdater,
-                            IChannelItems channelItems, ICategories categories, ILinkOpeningService linkOpeningService,
-                            IClipboardService clipboardService, IFilePickerService filePickerService, IThemeService themeService,
-                            IDispatcherWrapper dispatcherWrapper, IOptions<AppSettings> options, ILog log)
+    public MainViewModel(IChannelItems channelItems, IServiceProvider serviceProvider)
     {
-        _channelService = channelService;
-        _exportImport = exportImport;
-        _channelModelUpdater = channelModelUpdater;
         _channelItems = channelItems;
-        _categories = categories;
-        _linkOpeningService = linkOpeningService;
-        _clipboardService = clipboardService;
-        _filePickerService = filePickerService;
-        _themeService = themeService;
-        _dispatcherWrapper = dispatcherWrapper;
-        _settings = options.Value;
-        _log = log;
+        _serviceProvider = serviceProvider;
         _isPaneOpen = true;
         TriggerPaneCommand = CreateTriggerPaneCommand();
 
-        SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelModelUpdater, _channelService.iconConverter, _dispatcherWrapper)
-        {
-            PaneCommand = TriggerPaneCommand
-        };
-        ContentViewModel = new ContentViewModel(_channelService, _categories, _linkOpeningService, _clipboardService, _themeService);
-        TreeViewModel = new TreeViewModel(_channelService, _channelModelUpdater, _dispatcherWrapper, _log);
-        HeaderViewModel = new HeaderViewModel(_exportImport, _linkOpeningService, _filePickerService, _themeService, _settings);
+        ContentViewModel = _serviceProvider.GetRequiredService<ContentViewModel>();
+        TreeViewModel = _serviceProvider.GetRequiredService<TreeViewModel>();
+        HeaderViewModel = _serviceProvider.GetRequiredService<HeaderViewModel>();
 
         HeaderViewModel.WhenAnyValue(x => x.ImportCount)
         .Subscribe(x =>
@@ -62,21 +33,20 @@ public class MainViewModel : ViewModelBase
             .WhereNotNull()
             .Subscribe(x =>
             {
-                SelectedItemsViewModel = new ItemsViewModel(_channelItems, _channelModelUpdater, _channelService.iconConverter, _dispatcherWrapper)
-                {
-                    ChannelModel = x,
-                    AllChannels = TreeViewModel.GetChannelsForUpdate(),
-                    PaneCommand = TriggerPaneCommand
-                };
+                var model = _serviceProvider.GetRequiredService<ItemsViewModel>();
+                model.ChannelModel = x;
+                model.AllChannels = TreeViewModel.GetChannelsForUpdate();
+                model.PaneCommand = TriggerPaneCommand;
+                SelectedItemsViewModel = model;
 
-                SelectedItemsViewModel.WhenAnyValue(x => x.Items)
+                SelectedItemsViewModel?.WhenAnyValue(x => x.Items)
                 .Where(x => x != null)
                 .Subscribe(x =>
                 {
                     ContentViewModel.ItemsSource = x;
                 });
 
-                SelectedItemsViewModel.WhenAnyValue(x => x.SelectedChannelItem)
+                SelectedItemsViewModel?.WhenAnyValue(x => x.SelectedChannelItem)
                 .Where(x => x != null)
                 .Subscribe(x =>
                 {
@@ -87,7 +57,10 @@ public class MainViewModel : ViewModelBase
                 .Where(x => x != null)
                 .Subscribe(x =>
                 {
-                    SelectedItemsViewModel.SelectedChannelItem = x;
+                    if (SelectedItemsViewModel != null)
+                    {
+                        SelectedItemsViewModel.SelectedChannelItem = x;
+                    }
                 });
             });
 
@@ -114,7 +87,7 @@ public class MainViewModel : ViewModelBase
 
             if (TreeViewModel.SelectedChannelModel == targetChannel)
             {
-                SelectedItemsViewModel.LoadItems();
+                SelectedItemsViewModel?.LoadItems();
             }
         });
         ContentViewModel.WhenAnyValue(x => x.ReadLaterCount)
@@ -128,17 +101,16 @@ public class MainViewModel : ViewModelBase
 
             if (TreeViewModel.SelectedChannelModel == targetChannel)
             {
-                SelectedItemsViewModel.LoadItems();
+                SelectedItemsViewModel?.LoadItems();
             }
         });
         ContentViewModel.WhenAnyValue(x => x.SelectedCategory)
         .WhereNotNull()
         .Subscribe(x =>
         {
-            SelectedItemsViewModel.LoadItems(x);
+            SelectedItemsViewModel?.LoadItems(x);
         });
     }
-
     public void DeleteChannelItems()
     {
         _channelItems.Delete();

@@ -12,7 +12,7 @@ using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Input;
 using DynamicData;
 using DynamicData.Binding;
-using log4net;
+using Microsoft.Extensions.Logging;
 using MsBox.Avalonia.Enums;
 using ReactiveUI;
 using RssReader.MVVM.Extensions;
@@ -26,13 +26,14 @@ public class TreeViewModel : ViewModelBase
     private readonly IChannelService _channelsService;
     private readonly IChannelModelUpdater _channelModelUpdater;
     private readonly IDispatcherWrapper _dispatcherWrapper;
-    private readonly ILog _log;
-    public TreeViewModel(IChannelService channelsService, IChannelModelUpdater channelModelUpdater, IDispatcherWrapper dispatcherWrapper, ILog log)
+    private readonly ILogger<TreeViewModel> _logger;
+    public TreeViewModel(IChannelService channelsService, IChannelModelUpdater channelModelUpdater,
+                            IDispatcherWrapper dispatcherWrapper, ILogger<TreeViewModel> logger)
     {
         _channelsService = channelsService;
         _channelModelUpdater = channelModelUpdater;
         _dispatcherWrapper = dispatcherWrapper;
-        _log = log;
+        _logger = logger;
         AddFolderCommand = CreateAddFolderCommand();
         AddFeedCommand = CreateAddFeedCommand();
         DeleteCommand = CreateDeleteCommand();
@@ -286,9 +287,9 @@ public class TreeViewModel : ViewModelBase
                         source.RowSelection?.Select(source.Items.IndexOf(feed));
                         feed.WhenAnyValue(x => x.Title).Subscribe((x) => _channelsService.UpdateChannel(feed));
                     }
-                    catch (System.Exception ex)
+                    catch (Exception ex)
                     {
-                        _log.Error(ex);
+                        _logger.LogError(ex, "AddFeedCommand");
                         var dialog = this.GetMessageBox("Exception", ex.Message, ButtonEnum.Ok, Icon.Error);
                         await dialog.ShowAsync();
                     }
