@@ -10,7 +10,8 @@ using Microsoft.Extensions.Options;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
-using Avalonia.ReactiveUI;
+//using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using log4net.Config;
 using MsBox.Avalonia.Enums;
 using ReactiveUI;
@@ -152,7 +153,7 @@ public partial class App : Application
         }
     }
 
-    public T GetRequiredService<T>() => _host!.Services.GetRequiredService<T>();
+    public T GetRequiredService<T>() where T : notnull => _host!.Services.GetRequiredService<T>();
 
     private void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
         => _ = _host!.StopAsync(_cancellationTokenSource!.Token);

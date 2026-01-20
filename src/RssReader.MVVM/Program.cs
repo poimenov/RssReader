@@ -1,5 +1,6 @@
 ﻿using Avalonia;
-using Avalonia.ReactiveUI;
+//using Avalonia.ReactiveUI;
+using ReactiveUI.Avalonia;
 using Avalonia.Svg;
 using System;
 

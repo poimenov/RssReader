@@ -8,7 +8,7 @@ Simple rss aggregator
 
 ### Prerequisites
 
-.Net 8.0 SDK 
+.Net 10.0 SDK 
 
 ### Installation
 

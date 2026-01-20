@@ -1,0 +1,4 @@
+﻿<Solution>
+  <Project Path="src\RssReader.MVVM\RssReader.MVVM.csproj" />
+  <Project Path="tests\RssReader.MVVM.Tests\RssReader.MVVM.Tests.csproj" />
+</Solution>

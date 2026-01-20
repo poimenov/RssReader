@@ -4,11 +4,8 @@
             "name": ".NET Core Launch (console)",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask":{
-                "task": "build",
-                "type": "msbuild"
-            },
-            "program": "${workspaceFolder}/src/RssReader.MVVM/bin/Debug/net8.0/RssReader.MVVM.dll",
+            "preLaunchTask": "build",
+            "program": "${workspaceFolder}/src/RssReader.MVVM/bin/Debug/net10.0/RssReader.MVVM.dll",
             "args": [],
             "cwd": "${workspaceFolder}",
             "stopAtEntry": false,
