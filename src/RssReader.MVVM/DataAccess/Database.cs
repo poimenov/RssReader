@@ -9,7 +9,6 @@ internal class Database : DbContext
 
     public Database()
     {
-        this.Database.Migrate();
     }
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)

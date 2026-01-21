@@ -26,7 +26,7 @@ public class ClipboardService : IClipboardService
     {
         if (AvaloniaClipboard is not null)
         {
-            return AvaloniaClipboard.GetTextAsync();
+            return AvaloniaClipboard.TryGetTextAsync();
         }
 
         return Task.FromResult<string?>(null);

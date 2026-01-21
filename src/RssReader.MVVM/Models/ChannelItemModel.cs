@@ -73,7 +73,12 @@ public class ChannelItemModel : ReactiveObject
     {
         if (_iconConverter != null && (!string.IsNullOrEmpty(Link) || !string.IsNullOrEmpty(ChannelLink)))
         {
-            var host = new Uri(string.IsNullOrEmpty(ChannelLink) ? Link : ChannelLink).Host;
+            var uriString = string.IsNullOrEmpty(ChannelLink) ? Link : ChannelLink;
+            if (uriString == null)
+            {
+                return;
+            }
+            var host = new Uri(uriString).Host;
             ImageSource = _iconConverter.GetImageByChannelHost(host);
         }
     }
